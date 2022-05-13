@@ -1,0 +1,6 @@
+app/src/main/javascript/view/node_modules/**
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directory
+build

@@ -1,0 +1,308 @@
+*{
+    box-sizing: border-box;
+}
+
+body{
+    padding: 0px;
+    margin: 0px;
+    background-color: #AAA;
+}
+
+header{
+    width: 100%;
+    background-color: #001111;
+    border-bottom: 2px solid #DDD;
+    
+}
+
+.container{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+header .container{
+    flex-direction: row;
+    justify-content: flex-start;
+}
+
+header .head-title{
+    flex: 2;
+    display: flex;
+    justify-content: center;
+}
+
+header h2{
+    color: #DDD;
+}
+
+header form{
+    color: #DDD;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+header label{
+    display: flex;
+    
+}
+
+header label input{
+    width: 15ch;
+    margin-left: 5px;
+    margin-right: 8px;
+}
+
+header label a{
+    margin-right: 20px;
+}
+
+.login-page{
+    flex:1;
+    width: 100%;
+}
+
+.login-button:hover{
+    cursor: pointer;
+}
+
+.login-page a{
+    padding: 3px 5px;
+    border-radius: 5px;
+    background-color: #DDD;
+    border: 1px solid #AAA;
+    box-shadow: 1px 1px 3px #fff;
+    text-decoration: none;
+    color: #001111;
+}
+
+.login-page a:hover{
+    background-color: #AAA;
+}
+
+section{
+    display: flex;
+    justify-content: center;
+    padding-left: 10px;
+    margin-left: 30px;
+}
+
+section h3{
+    color: #001111;
+    font-size: 30px;
+    margin: 0px;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.select-title{
+    margin-top: 20px;
+    margin-bottom: 20px
+}
+
+.signup-select{
+    margin-bottom: 30px;
+}
+
+.signup-select-radio{
+    display: flex;
+}
+
+.signup-select-radio label{
+    display: flex;
+    flex-direction: row;
+    font-size: 20px;
+    margin-bottom: 5px;
+    margin-right: 10px;
+
+}
+
+.signup-select-radio label div{
+    margin-left: 3px;
+}
+
+.signup-window form{
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    background-color: #DDD;
+    border: 1px solid #FFF;
+    border-radius: 10px;
+    margin-bottom: 30px;
+}
+
+.signup-window input{
+    margin-bottom: 10px;
+}
+
+.signup-window textarea{
+    height: 100px;
+    resize: none;
+    margin-bottom: 8px;
+}
+
+.signup-window button{
+    background-color: #001111;
+    color: #DDD;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 5px;
+}
+
+.signup-window button:hover{
+    background-color: #FFF;
+    color: #001111;
+}
+
+footer{
+    display: flex;
+    height: 28px;
+    background-color: #001111;
+    color: #DDD;
+    padding-left: 20px;
+    font-size: 22px;
+    margin-top: 47px;
+    
+}
+
+.company-section{
+    display: none;
+}
+
+footer h6{
+    margin: 5px;
+}
+
+
+
+/* After Login Page*/
+
+.view-page{
+    display: flex;
+    flex-direction: row;
+}
+
+.view-page label div {
+    display: flex;
+    color: #ddd;
+}
+
+.view-page label div a{
+    margin-left: 5px;
+}
+.logout-button{
+    margin-right: 50px;
+}
+.logout-button:hover{
+    cursor:pointer;
+}
+
+.logout-button a{
+    background-color: #DDD;
+    color: #001111;
+    text-decoration: none;
+    padding: 3px;
+    border-radius: 5px;
+}
+
+.welcome{
+    margin-right: 10px;
+    margin-left: 2px;
+}
+
+.manageskills{
+    width: 100%;
+    background-color: #CCC;
+    padding: 5px;
+}
+
+.manageskills legend{
+    text-align: center;
+    background-color: #FFF;
+    border: 1px solid black;
+}
+
+.manageskills fieldset{
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.add-button:hover, .remove-button:hover{
+    color: #a38604;
+}
+
+.add-skills select, .remove-skills select{
+    width: 120px;
+    margin-right: 10px;
+    text-transform: uppercase;
+}
+
+.add-skills option, .remove-skills option{
+    text-transform: uppercase;
+}
+
+
+
+
+
+main{
+    height: 530px;
+}
+
+.view-window{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.slot-view{
+    margin-top: 40px;
+    background-color: #EEE;
+    height: 350px;
+    width: 300px;
+    overflow-y:auto;
+    padding: 5px;
+    border-radius: 10px;
+}
+
+
+.slot fieldset{
+    display: flex;
+    flex-direction: column;
+}
+
+.slot fieldset label{
+    margin-bottom: 10px;
+}
+
+.swipe-right{
+    display: flex;
+    flex: 1;
+    justify-content: flex-end;
+    height: 100%;
+}
+
+.swipe-left{
+    display: flex;
+    flex: 1;
+    justify-content: flex-start;
+    height: 100%;
+}
+
+.swipe-right:hover{
+    color: #25da0daf;
+    cursor:pointer;
+}
+
+.swipe-left:hover{
+    color: #c90f0faf;
+    cursor:pointer;
+}
+
+
+

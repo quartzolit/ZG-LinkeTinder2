@@ -1,0 +1,249 @@
+-- -----------------------------------------------------
+-- Table candidates
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS candidates (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(45) NOT NULL,
+  surname VARCHAR(45) NOT NULL,
+  birthdate DATE NOT NULL,
+  email VARCHAR(30) NOT NULL,
+  cpf VARCHAR(14) NOT NULL,
+  state VARCHAR(45) NOT NULL,
+  cep VARCHAR(10) NOT NULL,
+  country VARCHAR(20) NOT NULL,
+  personal_description VARCHAR(255) NOT NULL,
+  password VARCHAR(30) NOT NULL
+);
+
+
+
+-- -----------------------------------------------------
+-- Table companies
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS companies (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(45) NOT NULL,
+  cnpj VARCHAR(20) NOT NULL,
+  email VARCHAR(30) NOT NULL,
+  company_description VARCHAR(255) NOT NULL,
+  state VARCHAR(45) NOT NULL,
+  cep VARCHAR(10) NOT NULL,
+  country VARCHAR(45) NOT NULL,
+  password VARCHAR(30) NOT NULL
+);
+
+-- -----------------------------------------------------
+-- Table skills
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS skills (
+  id SERIAL PRIMARY KEY,
+  skill_name VARCHAR(45) NOT NULL
+);
+
+
+
+-- -----------------------------------------------------
+-- Table candidates_skills
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS candidates_skills (
+  id SERIAL PRIMARY KEY,
+  id_skill INT REFERENCES skills(id) NOT NULL,
+  id_candidate INT REFERENCES candidates(id) NOT NULL
+);
+
+
+-- -----------------------------------------------------
+-- Table vacancies
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS vacancies(
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(45) NOT NULL,
+  id_company INT REFERENCES companies(id) NOT NULL
+);
+
+
+
+-- -----------------------------------------------------
+-- Table vacancies_skills
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS vacancies_skills (
+  id SERIAL PRIMARY KEY,
+  id_skill INT REFERENCES skills(id) NOT NULL,
+  id_vacancy INT REFERENCES vacancies(id) NOT NULL
+);
+
+
+-- -----------------------------------------------------
+-- Table status
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS status(
+  id SERIAL PRIMARY KEY,
+  status VARCHAR(7) NOT NULL
+);
+-- -----------------------------------------------------
+-- Table vacancies_candidates
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS vacancies_candidates (
+  id SERIAL PRIMARY KEY,
+  id_candidate INT REFERENCES candidates(id) NOT NULL,
+  id_vacancy INT REFERENCES vacancies(id) NOT NULL,
+  id_status INT REFERENCES status(id) NOT NULL
+);
+
+
+-- -----------------------------------------------------
+-- Table companies_candidates
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS companies_candidates(
+  id SERIAL PRIMARY KEY,
+  id_company INT REFERENCES companies(id) NOT NULL,
+  id_candidate INT REFERENCES candidates(id) NOT NULL,
+  id_status INT REFERENCES status(id) NOT NULL
+);
+
+-- -----------------------------------------------------
+-- Insert candidates
+-- -----------------------------------------------------
+/*
+INSERT INTO candidates
+(name, surname, birthdate, email, cpf, state, cep, country, personal_description, password) VALUES
+('Luiz Arthur', 'Silva Moura', '1991-11-06', 'luiz.moura@acelerazg.com.br', '405.155.608-55', 'São Paulo', '12608-170', 'Brasil', 'Cool Guy', '123123' );
+
+INSERT INTO candidates
+(name, surname, birthdate, email, cpf, state, cep, country, personal_description, password) VALUES
+('Josué', 'Farias', '1987-04-08,', 'josue.faria@gmail.com', 'MG-112.344.566', 'Minas Gerais', '30205-102', 'Brasil', 'Eu não faria, mas Josué Farias', '112233' );
+
+INSERT INTO candidates
+(name, surname, birthdate, email, cpf, state, cep, country, personal_description, password) VALUES
+('Lima', 'Duarte', '1952-08-13', 'duarte@yahoo.com.br', '055.223.541-27', 'Rio de Janeiro', '21551-003', 'Brasil', 'Não me pela para limar. Duarte, Lima', '111222' );
+
+INSERT INTO candidates
+(name, surname, birthdate, email, cpf, state, cep, country, personal_description, password) VALUES
+('Gezebel', 'Tenório', '1993-05-12', 'gz.tenorio@uol.com.br', '926.544.321-98', 'São Paulo', '11223-278', 'Brasil', 'Me passa o gel Gezebel', '123123' );
+
+INSERT INTO candidates
+(name, surname, birthdate, email, cpf, state, cep, country, personal_description, password) VALUES
+('Tomás', 'Farouk', '1974-05-29', 'faroukinho@gmail.com', '523.844.971-56', 'Sergipe', '49000-200', 'Brasil', 'Gosto de cebola', '123123' );
+*/
+
+-- -----------------------------------------------------
+-- Insert Companies
+-- -----------------------------------------------------
+/*
+INSERT INTO companies
+(name, cnpj, email, company_description, state, cep, country, password) VALUES
+('Zero Glosa', '14.488.144/0001', 'comercial@zgsolucoes.com.br', 'Awesome Company to work', 'Goiás', '74070-040', 'Brasil','123123');
+
+INSERT INTO companies
+(name, cnpj, email, company_description, state, cep, country, password) VALUES
+('Petrobras', '33.000.167/1049-00', 'comercial@petrobras.com.br', 'Gas super high price', 'Rio de Janeiro', '20.031-912', 'Brasil','123123');
+
+
+INSERT INTO companies
+(name, cnpj, email, company_description, state, cep, country, password) VALUES
+('Arros-Gostoso', '12.544.231/0011', 'comercial@arrozgostoso.com.br', 'Selling good quality rice', 'Mato Grosso do Sul', '69512-030', 'Brasil','123123');
+
+
+INSERT INTO companies
+(name, cnpj, email, company_description, state, cep, country, password) VALUES
+('Império do Boliche', '84.521.799/0001', 'boliche@imperio.com.br', 'Come play with us', 'Maranhão', '81224-103', 'Brasil','123123');
+
+
+INSERT INTO companies
+(name, cnpj, email, company_description, state, cep, country, password) VALUES
+('Boi na Fonte', '87.530.973/0001', 'boi@nafonte.com.br', 'Come refresh your bull', 'Goiás', '71522-008', 'Brasil','123123');
+*/
+
+-- -----------------------------------------------------
+-- Insert Skills
+-- -----------------------------------------------------
+/*
+INSERT INTO skills (skill_name) VALUES ('HTML');
+
+INSERT INTO skills (skill_name) VALUES ('CSS');
+INSERT INTO skills (skill_name) VALUES ('JAVA');
+INSERT INTO skills (skill_name) VALUES ('GROOVY');
+INSERT INTO skills (skill_name) VALUES ('HIBERNATE');
+INSERT INTO skills (skill_name) VALUES ('DATABASE');
+INSERT INTO skills (skill_name) VALUES ('BACKEND');
+INSERT INTO skills (skill_name) VALUES ('FRONTEND');
+INSERT INTO skills (skill_name) VALUES ('GITHUB');
+INSERT INTO skills (skill_name) VALUES ('REGEX');
+*/
+
+
+-- -----------------------------------------------------
+-- Insert Status
+-- -----------------------------------------------------
+/*
+INSERT INTO status (status) VALUES('Like');
+INSERT INTO status (status) VALUES('Dislike');
+*/
+
+-- -----------------------------------------------------
+-- Insert candidates_skills
+-- -----------------------------------------------------
+/*
+INSERT INTO candidates_skills (id_skill, id_candidate) VALUES (1,1);
+INSERT INTO candidates_skills (id_skill, id_candidate) VALUES (2,1);
+INSERT INTO candidates_skills (id_skill, id_candidate) VALUES (3,1);
+INSERT INTO candidates_skills (id_skill, id_candidate) VALUES (4,1);
+INSERT INTO candidates_skills (id_skill, id_candidate) VALUES (9,1);
+INSERT INTO candidates_skills (id_skill, id_candidate) VALUES (3,2);
+INSERT INTO candidates_skills (id_skill, id_candidate) VALUES (4,2);
+INSERT INTO candidates_skills (id_skill, id_candidate) VALUES (7,2);
+INSERT INTO candidates_skills (id_skill, id_candidate) VALUES (6,3);
+INSERT INTO candidates_skills (id_skill, id_candidate) VALUES (7,3);
+INSERT INTO candidates_skills (id_skill, id_candidate) VALUES (8,3);
+INSERT INTO candidates_skills (id_skill, id_candidate) VALUES (5,4);
+INSERT INTO candidates_skills (id_skill, id_candidate) VALUES (6,4);
+INSERT INTO candidates_skills (id_skill, id_candidate) VALUES (9,4);
+INSERT INTO candidates_skills (id_skill, id_candidate) VALUES (10,4);
+INSERT INTO candidates_skills (id_skill, id_candidate) VALUES (3,5);
+INSERT INTO candidates_skills (id_skill, id_candidate) VALUES (4,5);
+*/
+
+-- -----------------------------------------------------
+-- Insert vacancies
+-- -----------------------------------------------------
+/*
+INSERT INTO vacancies (title, id_company) Values ('Desenvolveodr Backend Java / Groovy', 1);
+INSERT INTO vacancies (title, id_company) Values ('Desenvolvedor FullStack', 2);
+INSERT INTO vacancies (title, id_company) Values ('Analista REGEX', 3);
+INSERT INTO vacancies (title, id_company) Values ('Desenvolvedor Fullstack Pleno', 4);
+INSERT INTO vacancies (title, id_company) Values ('Desenvolvedor Fullstack Java/Groovy', 5);
+*/
+
+-- -----------------------------------------------------
+-- Insert vacancies_skills
+-- -----------------------------------------------------
+/*
+INSERT INTO vacancies_skills(id_skill, id_vacancy) VALUES(3,1);
+INSERT INTO vacancies_skills(id_skill, id_vacancy) VALUES(4,1);
+INSERT INTO vacancies_skills(id_skill, id_vacancy) VALUES(6,1);
+INSERT INTO vacancies_skills(id_skill, id_vacancy) VALUES(9,1);
+INSERT INTO vacancies_skills(id_skill, id_vacancy) VALUES(1,2);
+INSERT INTO vacancies_skills(id_skill, id_vacancy) VALUES(2,2);
+INSERT INTO vacancies_skills(id_skill, id_vacancy) VALUES(7,2);
+INSERT INTO vacancies_skills(id_skill, id_vacancy) VALUES(9,2);
+INSERT INTO vacancies_skills(id_skill, id_vacancy) VALUES(2,3);
+INSERT INTO vacancies_skills(id_skill, id_vacancy) VALUES(6,3);
+INSERT INTO vacancies_skills(id_skill, id_vacancy) VALUES(8,3);
+INSERT INTO vacancies_skills(id_skill, id_vacancy) VALUES(10,3);
+INSERT INTO vacancies_skills(id_skill, id_vacancy) VALUES(6,4);
+INSERT INTO vacancies_skills(id_skill, id_vacancy) VALUES(7,4);
+INSERT INTO vacancies_skills(id_skill, id_vacancy) VALUES(8,4);
+INSERT INTO vacancies_skills(id_skill, id_vacancy) VALUES(9,4);
+INSERT INTO vacancies_skills(id_skill, id_vacancy) VALUES(1,5);
+INSERT INTO vacancies_skills(id_skill, id_vacancy) VALUES(2,5);
+INSERT INTO vacancies_skills(id_skill, id_vacancy) VALUES(3,5);
+INSERT INTO vacancies_skills(id_skill, id_vacancy) VALUES(4,5);
+INSERT INTO vacancies_skills(id_skill, id_vacancy) VALUES(5,5);
+*/
+-- -----------------------------------------------------
+-- SELECTS
+-- -----------------------------------------------------
+
+SELECT * FROM vacancies_skills;
+
+

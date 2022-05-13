@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://kit.fontawesome.com/364428d876.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="../css/style.css">
+    <title>LinkeTinder</title>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="head-title">
+                <h2>ZG - Linketinder</h2>
+            </div>
+
+            <div class="login-page">
+                <form>
+                    <label>
+                        <div>e-mail: </div>
+                        <input data-type="email-login" type="text" name="login" required >
+                    </label>
+                    <label>
+                        <div>Password: </div>
+                        <input data-type="password-login" type="password" name="password" required >
+                    </label>
+                    <div class="login-button">
+                        <a>Login</a>  
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </header>
+
+    <section class="main-window">
+        <div class="container">
+            <div class="signup-select">
+                <div class="select-title">
+                    <h3>
+                        Are you a...
+                    </h3>
+
+                </div>
+                <div class="signup-select-radio">
+                    <label>
+                        <input class="select-candidate" type="radio" name="company-or-person" value="Person" checked="checked">
+                        <div>Candidate</div>
+                
+                    </label>
+                    <label>
+                        <input class="select-company" type="radio" name="company-or-person" value="Company" >
+                        <div> Company</div>
+                    </label>
+
+                </div>
+                
+
+            </div>
+
+            <div class="signup-window">
+
+                <div class="container">
+                    <form>
+                        <input data-type="login" class="person" type="email" name="login" placeholder="Login" required>
+                        <input data-type="password"class="person" type="password" name="password" placeholder="Password" required>
+                        <input data-type="confirm-password"class="person" type="password" name="confirm-password" placeholder="confirm-password" required>
+                        <span id="matching-message"></span>
+                        <div class="candidate-section">
+                            <input data-type="name" class="person candidate" type="text" name="name" placeholder="name" required>
+                            <input data-type="age"  class="person candidate"type="number" name="age" placeholder="age" required>
+                            <input data-type="cpf"  class="person candidate"type="text" name="cpf" placeholder="cpf" required>
+                        </div>
+                        <div class="company-section">
+                            <input data-type="company-name" class="person company" type="text" name="company-name" placeholder="Company name">
+                            <input data-type="cnpj"  class="person company" type="text" name="cnpj" placeholder="cnpj">
+                            <input data-type="country" class="person company" type="text" name="country" placeholder="Country">
+
+                        </div>
+                        <input data-type="cep" type="text" name="cep" placeholder="CEP" required>
+
+                        <input data-type="state" type="text" name="state" placeholder="state">
+
+                        
+                        <textarea class="description" maxlength="300"></textarea>
+
+                        <button class="signup">Sign Up</button>
+                                          
+                        
+                    </form>
+
+                </div>
+
+            </div>
+            
+        </div>
+
+    </section>
+
+    <footer>
+        <h6>Developed by Quartz - All Rights Reserved</h6>
+    </footer>
+
+    <script src="../js/index.js"></script>
+</body>
+</html>
