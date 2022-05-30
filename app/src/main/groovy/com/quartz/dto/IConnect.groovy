@@ -2,6 +2,7 @@ package com.quartz.dto
 
 import com.quartz.model.person.Candidate
 import com.quartz.model.person.Company
+import com.quartz.model.person.Skills
 import com.quartz.model.person.Vacancy
 
 import java.sql.Connection
@@ -20,7 +21,7 @@ interface IConnect {
 
     void insertCandidate(Candidate person, String password);
 
-    void insertCandidateSkills(String[] skills, String email);
+    void insertCandidateSkills(Skills skills, String email);
 
     void insertCandidateSkillRelations(String email, String skill)
 
@@ -28,11 +29,17 @@ interface IConnect {
 
     void insertVacancy(Vacancy vacancy, String email)
 
-    void insertVacancySkills(Vacancy vacancy, String email)
+    void insertVacancySkills(String title, String email, Skills skills)
 
     void insertCompanySkillRelations(String email, String title, String skill)
 
     void updateCandidate(Candidate person, int idCandidate);
+
+    void updateCompany(Company person, int idCompany)
+
+    void updateVacancy(Vacancy vacancy, int idVacancy, int idCompany)
+
+    void updateSkill(String skill, int idSkill)
 
     void deleteCandidate(int idCandidate);
 

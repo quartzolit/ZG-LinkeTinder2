@@ -10,13 +10,17 @@ import java.util.Date
 
 class ConnectPostgres implements IConnect {
 
-    @Override
+     @Override
     Connection connect() {
+        Properties props = new Properties()
+        props.setProperty("user", "arthur")
+        props.setProperty("password", "123456")
+        props.setProperty("ssl", "false")
         String url = "jdbc:postgresql://localhost:5432/linketinder"
-        String driver = ''
 
         try{
-            return DriverManager.getConnection(url,"arthur","123456")
+            Class.forName("org.postgresql.Driver")
+            return DriverManager.getConnection(url,props)
         }catch(Exception e){
             e.stackTrace()
             if(e instanceof ClassNotFoundException){
@@ -50,10 +54,11 @@ class ConnectPostgres implements IConnect {
 
         Connection conn = null
         Statement candidates = null
-        List<Candidate> listOfCandidates = []
+        def listOfCandidates = []
 
         try{
             conn = connect()
+
             candidates = conn.prepareStatement(
                     select_all,
                     ResultSet.TYPE_SCROLL_INSENSITIVE,
@@ -82,12 +87,14 @@ class ConnectPostgres implements IConnect {
 
                     int age = DateManagement.getAge(dateOfBirth)
 
-                    skillsList = skillsList.split(",")
 
-                    listOfCandidates << new Candidate(id: id, name: "$name $surName", email: email
-                            ,cpf: cpf, age: age, state: state, cep: cep
-                            , description: description, country: country
-                            , skills: new Skills(skills: skillsList))
+                    def skillsListArray = skillsList.split(",")
+
+
+                    listOfCandidates << new Candidate(id: id, name: name, surname: surName, email: email,
+                            cpf: cpf, age: age, state: state, cep: cep,
+                            description: description, country: country,
+                            skills: new Skills(skills: skillsListArray))
                 }
             }
             else{
@@ -110,7 +117,7 @@ class ConnectPostgres implements IConnect {
 
     List<Company> showALLCompanies() {
         String select_all = "SELECT co.id,co.name, co.cnpj, co.email, co.company_description, co.state, co.cep, co.country, v.title,\n" +
-                "string_agg(s.skill_name, ', ') AS \"Skills List\"\n" +
+                "string_agg(s.skill_name, ',') AS \"Skills List\"\n" +
                 "from companies AS co,\n" +
                 "skills AS s,\n" +
                 "vacancies_skills AS vs, \n" +
@@ -136,7 +143,6 @@ class ConnectPostgres implements IConnect {
 
 
             if (qtd >0){
-
                 while (res.next()){
                     int id = res.getInt(1)
                     String name = res.getString(2)
@@ -149,13 +155,15 @@ class ConnectPostgres implements IConnect {
                     String title = res.getString(9)
                     String skillList = res.getString(10)
 
-                    skillList = skillList.split(",")
+
+
+                    def skillsListArray = skillList.split(",")
 
                     listOfCompanies << new Company(id: id, name: name, email: email
                             ,cnpj: cnpj, country: country, state: state, cep: cep
                             , description: description
-                            , skills: new Skills(skills: skillList)
-                            ,vacancies: new Vacancy(name: title, desiredSkills: new Skills(skills: skillList)))
+                            , skills: new Skills(skills: skillsListArray)
+                            , vacancy: new Vacancy(name: title, desiredSkills: new Skills(skills: skillsListArray)))
                 }
             }
             else{
@@ -211,7 +219,9 @@ class ConnectPostgres implements IConnect {
 
                     skillList = skillList.split(",")
 
-                    listOfVacancies<< new Vacancy(id: idReceived, name: title, desiredSkills: new Skills(skills: skillList ) )
+                    def skillsListArray = skillList.split(",")
+
+                    listOfVacancies<< new Vacancy(id: idReceived, name: title, desiredSkills: new Skills(skills: skillsListArray ) )
                 }
 
 
@@ -264,27 +274,29 @@ class ConnectPostgres implements IConnect {
 
                 if(qtd > 0){
                     println("A user with this e-mail already exists")
-                    return
                 }
                 else {
+
                     PreparedStatement insert = conn.prepareStatement(insertCandidate)
 
-                    insert.setString(person.name)
-                    insert.setString(person.surname)
-                    insert.setDate(dateOfBirth)
-                    insert.setString(person.email)
-                    insert.setString(person.cpf)
-                    insert.setString(person.state)
-                    insert.setString(person.cep)
-                    insert.setString(person.country)
-                    insert.setString(person.description)
-                    insert.setString(password)
+                    insert.setString(1,person.name)
+                    insert.setString(2,person.surname)
+                    insert.setDate(3,dateOfBirth)
+                    insert.setString(4,person.email)
+                    insert.setString(5,person.cpf)
+                    insert.setString(6,person.state)
+                    insert.setString(7,person.cep)
+                    insert.setString(8,person.country)
+                    insert.setString(9,person.description)
+                    insert.setString(10,password)
 
-                    insert. executeUpdate()
+
+                    insert.executeUpdate()
                     insert.close()
 
-                    disconnect(conn)
                 }
+            candidateFilter.close()
+            disconnect(conn)
         }catch(Exception e){
             e.printStackTrace()
             System.err.println("Erro ao inserir o produto")
@@ -293,14 +305,15 @@ class ConnectPostgres implements IConnect {
 
     }
 
-    void insertCandidateSkills(String[] skills, String email){
+    void insertCandidateSkills(Skills skills, String email){
         try{
             Connection conn = connect()
 
-            String skill
-            while (skills.size()>0){
+            String skill= null
 
-                skill = skills[0]
+            while (skills.skills.size()>0){
+
+                skill = skills.skills.remove(0)
                 String searchSkillOnDB = "SELECT * FROM skills WHERE skill_name = ?"
 
                 PreparedStatement searchSkill = conn.prepareStatement(
@@ -317,9 +330,7 @@ class ConnectPostgres implements IConnect {
 
                 if(qtd>0){
                     insertCandidateSkillRelations(email, skill)
-                    searchSkill.close()
-                    disconnect(conn)
-                    continue;
+
                 }else {
                     String skillInsert = "INSERT INTO skills (skill_name) VALUES(?)"
 
@@ -330,13 +341,11 @@ class ConnectPostgres implements IConnect {
                     insertSkill.executeUpdate();
                     insertCandidateSkillRelations(email, skill)
                     insertSkill.close();
-                    disconnect(conn)
-
                 }
-
-                skills = skills.drop(1)
-
+                searchSkill.close()
             }
+            disconnect(conn)
+
         }catch(Exception e){
             e.stackTrace()
             println("Connection error")
@@ -351,8 +360,7 @@ class ConnectPostgres implements IConnect {
 
             Connection conn = connect()
 
-            String searchIDs = "SELECT ca.id, s.id FROM candidates AS ca, skills AS s WHERE ca.email = ?\n" +
-                    "AND s.skill_name = ?; "
+            String searchIDs = "SELECT ca.id, s.id FROM candidates AS ca, skills AS s WHERE ca.email = ? AND s.skill_name = ?; "
 
             PreparedStatement selectIDS = conn.prepareStatement(
                     searchIDs,
@@ -367,7 +375,11 @@ class ConnectPostgres implements IConnect {
 
             int qtd = getResultSetLength(res)
 
+            println(qtd + "Numero de encontros")
+
             if(qtd > 0){
+                res.next()
+
                 int idCandidate = res.getInt(1)
                 int idSkill = res.getInt(2)
 
@@ -375,15 +387,16 @@ class ConnectPostgres implements IConnect {
 
                 PreparedStatement insertRelation = conn.prepareStatement(insertSkillRelation)
 
-                insertRelation.setInt(1,idSkill)
-                insertRelation.setInt(2,idCandidate)
+                insertRelation.setInt(1, idSkill)
+                insertRelation.setInt(2, idCandidate)
 
                 insertRelation.executeUpdate()
+
+                println("executou o update")
                 insertRelation.close()
+
                 selectIDS.close()
                 disconnect(conn)
-                return
-
             }else{
                 println("ID not found. Please check if everything is correct")
             }
@@ -400,8 +413,8 @@ class ConnectPostgres implements IConnect {
             Connection conn = connect()
             String searchForCompany = "SELECT * FROM companies WHERE email = ?"
 
-            String insertCompany = "INSERT INTO candidates (name, cnpj, email, company_description, state, cep, country, password)\n"+
-                    "VALUES (?,?,?,?,?,?,?,?,?,?)"
+            String insertCompany = "INSERT INTO companies (name, cnpj, email, company_description, state, cep, country, password)\n"+
+                    "VALUES (?,?,?,?,?,?,?,?)"
 
             PreparedStatement companyFilter = conn.prepareStatement(
                     searchForCompany,
@@ -415,28 +428,32 @@ class ConnectPostgres implements IConnect {
 
             int qtd = getResultSetLength(res)
 
+            println("peguei a quantidade ${qtd}")
+
             if(qtd > 0){
                 println("A user with this e-mail already exists")
-                return
             }
             else {
+
                 PreparedStatement insert = conn.prepareStatement(insertCompany)
 
-                insert.setString(person.name)
-                insert.setString(person.cnpj)
-                insert.setString(person.email)
-                insert.setString(person.description)
-                insert.setString(person.state)
-                insert.setString(person.cep)
-                insert.setString(person.country)
+                insert.setString(1,person.name)
+                insert.setString(2,person.cnpj)
+                insert.setString(3,person.email)
+                insert.setString(4,person.description)
+                insert.setString(5,person.state)
+                insert.setString(6,person.cep)
+                insert.setString(7,person.country)
+                insert.setString(8,password)
 
-                insert.setString(password)
-
-                insert. executeUpdate()
+                insert.executeUpdate()
+                println("executou o update")
                 insert.close()
-
-                disconnect(conn)
             }
+
+            companyFilter.close()
+            disconnect(conn)
+
         }catch(Exception e){
             e.stackTrace();
             println("Connection problem")
@@ -463,29 +480,29 @@ class ConnectPostgres implements IConnect {
             int qtd = getResultSetLength(res)
 
             if(qtd>0){
-                int id = res.getInt(1)
+                    res.next()
+                    int id = res.getInt(1)
+                    String vacancyCreationSQL = "INSERT INTO vacancies (title, id_company) VALUES(?,?)"
+                    PreparedStatement createVacancy = conn.prepareStatement(vacancyCreationSQL)
 
-                searchCreatedCompany.close()
-                String vacancyCreationSQL = "INSERT INTO vacancies (title, id_company) VALUES(?,?)"
-                PreparedStatement createVacancy = conn.prepareStatement(vacancyCreationSQL)
+                    createVacancy.setString(1, vacancy.name)
+                    createVacancy.setInt(2, id)
 
-                createVacancy.setString(1, vacancy.name)
-                createVacancy.setInt(2, id)
+                    createVacancy.executeUpdate();
 
-                createVacancy.executeUpdate();
+                    println("cheguei aqui")
+
+
 
                 createVacancy.close()
-
+                searchCreatedCompany.close()
                 disconnect(conn)
-
-                insertVacancySkills(vacancy, email, false)
-
-                return
-
+               // insertVacancySkills(vacancy, email, false)
             }
             else {
                 println("Account not found")
-                return
+                searchCreatedCompany.close()
+                disconnect(conn)
             }
 
         }catch(Exception e){
@@ -496,16 +513,15 @@ class ConnectPostgres implements IConnect {
 
     }
 
-    void insertVacancySkills(Vacancy vacancy, String email){
+    void insertVacancySkills(String vacancyTitle, String email, Skills skills){
 
         try{
             Connection conn = connect()
-            Skills[] skills = vacancy.desiredSkills.getSkills()
 
             String skill
-            while (skills.size()>0){
+            while (skills.skills.size()>0){
 
-                skill = skills[0]
+                skill = skills.skills.remove(0)
                 String searchSkillOnDB = "SELECT * FROM skills WHERE skill_name = ?"
 
                 PreparedStatement searchSkill = conn.prepareStatement(
@@ -520,11 +536,11 @@ class ConnectPostgres implements IConnect {
 
                 int qtd = getResultSetLength(res)
 
+                println("encontrei a skill ${skill}")
+
                 if(qtd>0){
-                    insertCompanySkillRelations(email, vacancy.name, skill)
-                    searchSkill.close()
-                    disconnect(conn)
-                    continue;
+                    insertCompanySkillRelations(email, vacancyTitle, skill)
+
                 }else {
                     String skillInsert = "INSERT INTO skills (skill_name) VALUES(?)"
 
@@ -533,15 +549,13 @@ class ConnectPostgres implements IConnect {
                     insertSkill.setString(1,skill);
 
                     insertSkill.executeUpdate();
-                    insertCompanySkillRelations(email, vacancy.name, skill)
-                    insertSkill.close();
-                    disconnect(conn)
+                    insertCompanySkillRelations(email, vacancyTitle, skill)
+                    insertSkill.close()
 
                 }
-
-                skills = skills.drop(1)
-
+                searchSkill.close()
             }
+            disconnect(conn)
         }catch(Exception e){
             e.stackTrace()
             println("Connection error")
@@ -575,10 +589,13 @@ class ConnectPostgres implements IConnect {
             int qtd = getResultSetLength(res)
 
             if(qtd > 0){
+                res.next()
                 int idVacancy = res.getInt(1)
                 int idSkill = res.getInt(2)
 
-                String insertSkillRelation = "INSERT INTO candidates_skills (id_skill,id_vacancy) VALUES (?,?)"
+                println("peguei os valores")
+
+                String insertSkillRelation = "INSERT INTO vacancies_skills (id_skill,id_vacancy) VALUES (?,?)"
 
                 PreparedStatement insertRelation = conn.prepareStatement(insertSkillRelation)
 
@@ -589,8 +606,6 @@ class ConnectPostgres implements IConnect {
                 insertRelation.close()
                 selectIDS.close()
                 disconnect(conn)
-                return
-
             }else{
                 println("ID not found. Please check if everything is correct")
             }

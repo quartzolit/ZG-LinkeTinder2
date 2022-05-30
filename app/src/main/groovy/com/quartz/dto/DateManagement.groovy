@@ -1,26 +1,26 @@
 package com.quartz.dto
 
 import java.text.SimpleDateFormat
+import java.time.LocalDate
 import java.time.Period
 
 class DateManagement {
 
-    public static int getAge (String dateOfBirth){
-        def currDate = new Date()
+    public static int getAge(Date dateOfBirth){
 
-        def dob = new SimpleDateFormat("yyyy-MM-dd").parse(dateOfBirth);
+        def dob = LocalDate.parse(dateOfBirth.toString(), "yyyy-MM-dd").getYear()
 
-        Period period = Period.between(dob, currDate)
+        def currYear = LocalDate.now().getYear()
 
-        int age = period.getYears()
+        int age = currYear - dob
+
 
         return age
     }
 
-    public static Date getDateOfBirth(int age){
-        def currDate = new Date()
+    public static LocalDate getDateOfBirth(int age){
 
-        def dateofBirth = currDate.minus(age*365+(Math.floor(age/4)));
+        def dateofBirth = LocalDate.now().minusYears(age)
 
         return dateofBirth
     }

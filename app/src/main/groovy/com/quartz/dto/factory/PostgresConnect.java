@@ -5,7 +5,6 @@ import com.quartz.dto.IConnect;
 
 public class PostgresConnect extends  CrudFactory{
     @Override
-    protected IConnect createConnection() {
-        return new ConnectPostgres();
+    protected IConnect createConnection() {return new ConnectPostgres();
     }
 }
