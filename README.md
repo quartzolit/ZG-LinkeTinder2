@@ -89,10 +89,19 @@ The organization of the files was reordered following MVC pattern. To sum up the
 
 - HTML, CSS and typescript files were redirected to view package
 
+## 1.12
+
+A http communication was set using tomcat and java servlet. We create a class called signup servlet that uses a post method to receive a JSON estructured data from our frontEnd. To do so, we configure our frontEND to send this data through Http at the following url: http://localhost:8085/ZG-LinkeTinder2/person.
+
+On the server side, we have to install smart tomcat on IntelliJ, which runs our servlet without using a war file. We configure the smart tomcat to run at the port 8085. We also have to allow CORS access to our client side, because the frontEND runs at the port 9000. Since the urls are different, a CORS ERROR occurs. Then we treated this error on the servlet method.
+
+Besides that, we fixed some issues on our CRUD class, adding a Class.forName on our connect method because the servlet wasn't recognizing our jdbc lib. And some minor issues on CRUD methods
+
 
 
 # Executing project
 
-To execute the project you only need to run the application.groovy file. If you want to run unit tests, run the files in test folder instead
+To executing this project, you have to configure smart tomcat 10.0.0 and set up to connect on port 8085
 
-to run frontEnd project. You have to install dependencies, then use npm start to run
+to run frontEnd project. You have to install dependencies, then use npm start to run the files. Then you can access the following url: http:localhost:9000
+
