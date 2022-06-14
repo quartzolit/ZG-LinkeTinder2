@@ -6,6 +6,7 @@ import com.quartz.model.person.Skills
 import com.quartz.model.person.Vacancy
 
 import java.sql.*
+import java.time.LocalDate
 import java.util.Date
 
 class ConnectPostgres implements IConnect {
@@ -76,7 +77,7 @@ class ConnectPostgres implements IConnect {
                     int id = res.getInt(1)
                     String name = res.getString(2)
                     String surName = res.getString(3)
-                    Date dateOfBirth = res.getDate(4)
+                    LocalDate dateOfBirth = res.getDate(4)
                     String email = res.getString(5)
                     String cpf =  res.getString(6)
                     String state = res.getString(7)
@@ -85,14 +86,14 @@ class ConnectPostgres implements IConnect {
                     String description = res.getString(10)
                     String skillsList = res.getString(11)
 
-                    int age = DateManagement.getAge(dateOfBirth)
+                    //int age = DateManagement.getAge(dateOfBirth)
 
 
                     def skillsListArray = skillsList.split(",")
 
 
                     listOfCandidates << new Candidate(id: id, name: name, surname: surName, email: email,
-                            cpf: cpf, age: age, state: state, cep: cep,
+                            cpf: cpf, dob: dateOfBirth, state: state, cep: cep,
                             description: description, country: country,
                             skills: new Skills(skills: skillsListArray))
                 }
@@ -244,13 +245,169 @@ class ConnectPostgres implements IConnect {
 
     }
 
+    @Override
+    Candidate showCandidateByEmail(String candidateEmail, String candidatePassword) {
+
+        Connection conn = null
+        PreparedStatement getCandidate = null
+        try{
+            conn = connect()
+
+            String singleCandidate = "SELECT ca.*, string_agg(s.skill_name, ',') from candidates as ca, skills as s, candidates_skills as cs\n" +
+                    "WHERE cs.id_candidate = ca.id AND cs.id_skill = s.id AND ca.email = ? GROUP BY\n" +
+                    "ca.id ORDER BY ca.id;"
+
+            getCandidate = conn.prepareStatement(
+                    singleCandidate,
+                    ResultSet.TYPE_SCROLL_INSENSITIVE,
+                    ResultSet.CONCUR_READ_ONLY
+            )
+
+            getCandidate.setString(1, candidateEmail)
+
+            ResultSet res = getCandidate.executeQuery()
+
+            int qtd = getResultSetLength(res)
+
+            if(qtd>0){
+                res.next()
+
+                int id = res.getInt(1)
+                String name = res.getString(2)
+                String surName = res.getString(3)
+                LocalDate dateOfBirth = LocalDate.parse(res.getDate(4).toString(), 'yyyy-MM-dd')
+                String email = res.getString(5)
+                String cpf =  res.getString(6)
+                String state = res.getString(7)
+                String cep = res.getString(8)
+                String country = res.getString(9)
+                String description = res.getString(10)
+                String password = res.getString(11)
+                String skillsList = res.getString(12)
+
+                def skillsListArray = skillsList.split(",")
+
+
+                Candidate ca = new Candidate(id: id, name: name, surname: surName, email: email,
+                        cpf: cpf, dob: dateOfBirth, state: state, cep: cep,
+                        description: description, country: country,
+                        skills: new Skills(skills: skillsListArray))
+
+                getCandidate.close()
+                disconnect(conn)
+
+                if(!(candidateEmail == email && candidatePassword == password)){
+                    println("Email or Password doesn't match")
+                    return null
+                }
+
+                return ca
+
+            }else {
+                println("Candidate not found")
+                return null
+            }
+
+        }catch(Exception e){
+        e.printStackTrace()
+        System.err.println("Erro ao encontrar o candidato")
+        System.exit(-42)
+        }
+        finally {
+            getCandidate.close()
+            disconnect(conn)
+        }
+    }
+
+    @Override
+    Company showCompanyByEmail(String companyEmail, String companyPassword) {
+
+        String select_all = "SELECT co.*, v.title,\n" +
+                "string_agg(s.skill_name, ',') AS \"Skills List\"\n" +
+                "from companies AS co,\n" +
+                "skills AS s,\n" +
+                "vacancies_skills AS vs, \n" +
+                "vacancies AS v\n" +
+                "WHERE vs.id_skill = s.id \n" +
+                "AND vs.id_vacancy = v.id\n" +
+                "AND v.id_company = co.id \n" +
+                "AND co.email = ?  Group By co.id, v.title ORDER BY co.id"
+        Connection conn = null
+        Statement getCompany = null
+        try{
+            conn = connect()
+            getCompany = conn.prepareStatement(
+                    select_all,
+                    ResultSet.TYPE_SCROLL_INSENSITIVE,
+                    ResultSet.CONCUR_READ_ONLY
+            )
+
+            getCompany.setString(1, companyEmail )
+
+
+
+            ResultSet res = getCompany.executeQuery()
+
+
+            int qtd = getResultSetLength(res)
+
+
+            if (qtd >0){
+                res.next()
+
+                int id = res.getInt(1)
+                String name = res.getString(2)
+                String cnpj = res.getString(3)
+                String email = res.getString(4)
+                String description = res.getString(5)
+                String state = res.getString(6)
+                String cep = res.getString(7)
+                String country = res.getString(8)
+                String password = res.getString(9)
+                String title = res.getString(10)
+                String skillList = res.getString(11)
+
+
+
+                def skillsListArray = skillList.split(",")
+
+                Company co = new Company(id: id, name: name, email: email
+                        ,cnpj: cnpj, country: country, state: state, cep: cep
+                        , description: description
+                        , skills: new Skills(skills: skillsListArray)
+                        , vacancy: new Vacancy(name: title, desiredSkills: new Skills(skills: skillsListArray)))
+
+
+                if(!(email == companyEmail && password == companyPassword)){
+                    println("Email or password does not match")
+                    return null
+                }
+
+                return co
+            }
+            else{
+                println("There is no Company with specified e-mail")
+                return null
+            }
+
+
+        }catch(Exception e){
+            e.printStackTrace()
+            System.err.println("Erro ao encontrar o candidato")
+            System.exit(-42)
+        }
+        finally {
+            getCompany.close()
+            disconnect(conn)
+        }
+    }
 
     @Override
     void insertCandidate(Candidate person, String password) {
         try{
             Connection conn = connect()
 
-            def dateOfBirth = DateManagement.getDateOfBirth(person.age)
+            //def dateOfBirth = DateManagement.getDateOfBirth(person.age)
 
 
             String searchForCandidate = "SELECT * FROM candidates WHERE email = ?"
@@ -281,7 +438,7 @@ class ConnectPostgres implements IConnect {
 
                     insert.setString(1,person.name)
                     insert.setString(2,person.surname)
-                    insert.setDate(3,dateOfBirth)
+                    insert.setDate(3,person.dob)
                     insert.setString(4,person.email)
                     insert.setString(5,person.cpf)
                     insert.setString(6,person.state)
@@ -299,7 +456,7 @@ class ConnectPostgres implements IConnect {
             disconnect(conn)
         }catch(Exception e){
             e.printStackTrace()
-            System.err.println("Erro ao inserir o produto")
+            System.err.println("Erro ao inserir o candidato")
             System.exit(-42)
         }
 
@@ -630,8 +787,6 @@ class ConnectPostgres implements IConnect {
 
             Connection conn = connect()
 
-            Date dob = DateManagement.getDateOfBirth(person.age)
-
             PreparedStatement search = conn.prepareStatement(
                     searchId,
                     ResultSet.TYPE_SCROLL_INSENSITIVE,
@@ -649,7 +804,7 @@ class ConnectPostgres implements IConnect {
 
                 update.setString(1,person.name);
                 update.setString(2,person.surname);
-                update.setDate(3,dob);
+                update.setDate(3,person.dob);
                 update.setString(4,person.email);
                 update.setString(5,person.cpf);
                 update.setString(6,person.state);

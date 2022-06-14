@@ -98,6 +98,11 @@ On the server side, we have to install smart tomcat on IntelliJ, which runs our 
 Besides that, we fixed some issues on our CRUD class, adding a Class.forName on our connect method because the servlet wasn't recognizing our jdbc lib. And some minor issues on CRUD methods
 
 
+## 2.0
+
+We finalized the project Linketinder with some more endpoints, in order to fully persist the data created. We've added /skill, /login and created a get method for /person. The /skill endpoint as a Post type insert the added skill to DB, the /login will bring the data of the logged user based on e-mail and password (no auth used at this moment) and the get method of /person will bring all the counterpart type of user to show as a card to set the approval or disapproval. To Sum up, if you login as a candidates, all companies will be bring from DB.
+
+Then, we did some refactoring on CRUD files, some model classes such as Person, Company and Candidate, and we did a lot of refactoring on the FrontEnd code, we expand the httpRequests class 
 
 # Executing project
 

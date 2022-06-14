@@ -19,6 +19,10 @@ interface IConnect {
 
     List<Vacancy> showALLCompanyVacanciesByCompanyId(int id);
 
+    Candidate showCandidateByEmail(String candidateEmail, String candidatePassword);
+
+    Company showCompanyByEmail(String companyEmail, String companyPassword);
+
     void insertCandidate(Candidate person, String password);
 
     void insertCandidateSkills(Skills skills, String email);

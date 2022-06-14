@@ -1,4 +1,5 @@
 import { Person } from "./IPerson";
+import { httpRequests } from "./httpRequest";
 
 
 //Redirecting If not Login
@@ -18,10 +19,20 @@ let logged: Person;
 let currentItem: Person;
 
 
-loadData();
 
-window.onload = function loadDOM(){
 
+
+window.onload = async function loadDOM(){
+
+    await loadData();
+
+  
+
+    console.log(filteredList[0])
+
+    
+
+/*
     if(logged.type == "candidate"){
         filteredList = peopleList.filter((item)=>{
             return item.type === "company";
@@ -33,6 +44,7 @@ window.onload = function loadDOM(){
             return item.type === "candidate";
         });
     }
+*/
 
     //Creating DOM variables
    
@@ -95,8 +107,43 @@ window.onload = function loadDOM(){
 
             if(!checkUniqueSkill){
                 logged.skills.push(selectedSkill)
+
+                let url = new URL("http://localhost:8085/ZG-LinkeTinder2/skill")
+                let request = new httpRequests()
+
+                if(logged.type == 'candidate'){
+                    request.sendSkillsToServer(url, logged.type , logged.email, selectedSkill)
+                    
+                }
+                else{
+                    request.sendSkillsToServer(url, logged.type, logged.email, selectedSkill, logged.vacancy)
+                }
+
                 creatingOptions(selectedSkill);
                 window.alert("Skill added Successfully");
+            }
+            
+
+        }
+
+    }
+
+    function checkingIfSKillIsRemovable(selectedSkill: string){
+        let checkUniqueSkill = false;
+
+        if(logged.skills){
+            logged.skills.forEach(e => {
+                if(e === selectedSkill){
+                    checkUniqueSkill = true
+                }
+                
+            });
+
+            if(checkUniqueSkill){
+                let id = logged.skills.indexOf(selectedSkill)
+                logged.skills.splice(id,1)
+                creatingOptions(selectedSkill);
+                window.alert("Skill Removed Successfully");
             }
             
 
@@ -148,12 +195,17 @@ window.onload = function loadDOM(){
     function updateFilteredList(){
 
         if(logged.skills){
-            filteredBySkillList = filteredList.filter(item=>{
+            filteredBySkillList = filteredList .filter(item=>{
                 
-                return item.skills?.some(skill => logged.skills?.includes(skill.toLowerCase()))
+                return item.skills?.some(skill => logged.skills?.includes(skill))
 
             })
-        }  
+        }
+
+        console.log("o filteredlis é:")
+        console.log(filteredList)
+        
+        console.log(filteredBySkillList)
         showTopItemFromList();
     }
 
@@ -178,13 +230,13 @@ window.onload = function loadDOM(){
 
             //label DOM
             const vacancyInfo1Label = document.createElement("label");
-            if(currentItem.type === "company"){
-                vacancyInfo1Label.textContent = "Country: ";
-
-            }else{
+            if(currentItem.type === "candidate"){
                 vacancyInfo1Label.textContent = "Age: ";
-
             }
+
+     
+            const vacancyCountryLabel = document.createElement("label")
+            vacancyCountryLabel.textContent = "Country: "
             const vacancyStateLabel = document.createElement("label");
             vacancyStateLabel.textContent = "State: ";
             const vacancyDesiredSkillsLabel = document.createElement("label");
@@ -195,12 +247,12 @@ window.onload = function loadDOM(){
             //spans
 
             const vacancyInfo1Span = document.createElement("span");
-            if(currentItem.type === "company"){
-                vacancyInfo1Span.textContent = `${currentItem.country}`;
+            if(currentItem.type === "candidate"){
+                vacancyInfo1Span.textContent = `${currentItem.dob}`;
 
-            }else{
-                vacancyInfo1Span.textContent = `${currentItem.age}`;
             }
+            const vacancyCountrySpan = document.createElement("span")
+            vacancyCountrySpan.textContent = `${currentItem.country}`
             const vacancyStateSpan = document.createElement("span");
             vacancyStateSpan.textContent = `${currentItem.state}`;
             const vacancyDesiredSkillsSpan = document.createElement("span");
@@ -214,6 +266,7 @@ window.onload = function loadDOM(){
 
             vacancyInfo1Label.appendChild(vacancyInfo1Span);
             vacancyStateLabel.appendChild(vacancyStateSpan);
+            vacancyCountryLabel.appendChild(vacancyCountrySpan)
             vacancyDesiredSkillsLabel.appendChild(vacancyDesiredSkillsSpan);
             vacancyDescriptionLabel.appendChild(vacancyDescriptionTextArea);
 
@@ -221,6 +274,7 @@ window.onload = function loadDOM(){
             vacancyFieldSet.appendChild(vacancyLegend);
             vacancyFieldSet.appendChild(vacancyInfo1Label);
             vacancyFieldSet.appendChild(vacancyStateLabel);
+            vacancyFieldSet.appendChild(vacancyCountryLabel);
             vacancyFieldSet.appendChild(vacancyDesiredSkillsLabel);
             vacancyFieldSet.appendChild(vacancyDescriptionLabel);
 
@@ -261,6 +315,7 @@ window.onload = function loadDOM(){
     function getCurrentItem():Person | undefined{
 
         if(filteredBySkillList.length>0){
+            
             return filteredBySkillList.shift()!;
         }
         
@@ -279,7 +334,7 @@ window.onload = function loadDOM(){
             if(logged.approval){
                 if(logged.approval.length>0){
                     for (const approved of logged.approval) {
-                        if(approved.login===item.login){
+                        if(approved.email===item.email){
                             checkApproval= false;
                         }  
                         
@@ -291,7 +346,7 @@ window.onload = function loadDOM(){
 
             if(logged.disapproval){
                     for (const disapproved of logged.disapproval) {
-                        if(disapproved.login===item.login){
+                        if(disapproved.email===item.email){
                             checkDisapproval= false;
                         } 
                         
@@ -343,15 +398,15 @@ window.onload = function loadDOM(){
 
     function saveAndLogout(){
 
-        for(let i = 0; i< peopleList.length; i++){
-            if(peopleList[i].login === logged.login){
+        for(let i = 0; i< filteredList.length; i++){
+            if(peopleList[i].email === logged.email){
                 peopleList[i] = logged;
             }
         }
 
        // console.log(peopleList)
 
-        sessionStorage.setItem("people", JSON.stringify(peopleList));
+        sessionStorage.setItem("people", JSON.stringify(filteredList));
 
         sessionStorage.removeItem("loggedPerson");
 
@@ -372,9 +427,53 @@ window.onload = function loadDOM(){
 
 async function loadData(){
 
+    let request = new httpRequests
+
+    let loggedJson = await JSON.parse(sessionStorage.loggedPerson);
+
+    let separatingLoggedSkills = []
+    
+
+    if(loggedJson.skills){
+
+        loggedJson.skills = loggedJson.skills.match(/\w+/g)
+    }
+
+    logged = loggedJson
+
+
+
+
+    let data:string  = await request.getAllData(logged.type)
+
+    
+
+    let objectJson = await JSON.parse(data)
+
+    let separatingSkills = []
+
+    for (const company of objectJson.companies) {
+        separatingSkills = company.skills.match(/\w+/g)
+
+        company.skills = separatingSkills
+        
+        filteredList.push(company)
+    }
+    
+
+    
+
+    //filteredList.push(peopleList[0])
+
+    
+
+
+
+    /*
+
     peopleList.push(await JSON.parse(sessionStorage.people)[0]);
 
-    logged = await JSON.parse(sessionStorage.loggedPerson);
+    
 
 
     if(peopleList.length < 10){
@@ -533,6 +632,7 @@ async function loadData(){
         peopleList.push(company5);
     }
 
+    */
 }
 
 

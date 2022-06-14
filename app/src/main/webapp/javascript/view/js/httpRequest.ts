@@ -1,21 +1,104 @@
 import {Person} from "./IPerson"
 
-function sendPostToServer(url: URL, body: Person){
+class httpRequests {
 
-    let request = new XMLHttpRequest()
+    sendPostToServer(url: URL, body: Person){
 
-    request.open("POST", url, true)
-   // request.setRequestHeader("Content-Type","application/json")
-   // request.setRequestHeader("Access-Control-Allow-Origin","*")
-    request.send(JSON.stringify(body))
-
+        let request = new XMLHttpRequest()
     
+        request.open("POST", url, true)
+       // request.setRequestHeader("Content-Type","application/json")
+       // request.setRequestHeader("Access-Control-Allow-Origin","*")
+        request.send(JSON.stringify(body))
+    
+        
+    
+        request.onload = () =>{
+            console.log(request.responseText)
+        }
+    
+        return request.responseText
+    }
+    
+     async receiveloggedPersonIfExistFromServer(url: URL, email: string, password: string): Promise<string>{
 
-    request.onload = () =>{
-        console.log(request.responseText)
+        return new Promise((resolve) =>{
+            let request = new XMLHttpRequest()
+
+        request.open("POST", url, true)
+
+
+        let loginJson = {
+            cEmail : `${email}`,
+            cPassword: `${password}`
+        }
+
+        request.send(JSON.stringify(loginJson))
+
+        request.onreadystatechange= function(){
+            if(request.readyState === 4 && request.status === 200){
+                resolve(request.responseText)
+            }
+        }
+
+        })
+        
+
+    } 
+
+    async getAllData(type:string): Promise<string>{
+        return new Promise((resolve, reject) =>{
+            let url = new URL(`http://localhost:8085/ZG-LinkeTinder2/person?type=${type}`)
+
+            let request = new XMLHttpRequest()
+
+            request.open("GET",url, true)
+
+            request.onreadystatechange = function(){
+                if(request.readyState == 4 && request.status == 200){
+                    resolve(request.responseText)
+                }
+            }
+
+
+            request.send()
+
+        })
+    
     }
 
-    return request.responseText
+    sendSkillsToServer(url: URL, type:string, email:string, skill:string, vacancy?:string){
+        let request = new XMLHttpRequest()
+
+        request.open("POST",url,true)
+
+        let skillDataJson = {}
+
+        if(type === 'candidate'){
+            skillDataJson = {
+                type: `${type}`,
+                email: `${email}`,
+                skill: `${skill}`
+            }
+        }
+        else{
+            skillDataJson = {
+                type: `${type}`,
+                email: `${email}`,
+                skill: `${skill}`,
+                vacancy: `${vacancy}`
+            }
+        }
+
+        
+
+        request.send(JSON.stringify(skillDataJson))
+
+        return request.status
+    }
+
 }
 
-export { sendPostToServer };
+
+
+export { httpRequests };

@@ -1,4 +1,4 @@
-import {sendPostToServer} from "./httpRequest"
+import {httpRequests} from "./httpRequest"
 import { Person } from "./IPerson";
 
 
@@ -9,7 +9,7 @@ const emailRegex: RegExp = /^[A-Za-z][A-Za-z0-9 \w\.]+@[A-Za-z0-9_\-.]{3,}\.[A-Z
 const cpfRegex: RegExp = /(^\d{3})\.(\d{3})\.(\d{3})\-(\d{2})$/;
 const cnpjRegex: RegExp = /\d{2}\.\d{3}\.\d{3}\/(0001|0002)\-\d{2}/;
 const cepRegex: RegExp = /(^(\d{2}\.\d{3})|(\d{5}))\-\d{3}$/;
-const ageRegex: RegExp = /(^1[8-9])|(^[2-8]\d)/
+//const ageRegex: RegExp = /(^1[8-9])|(^[2-8]\d)/
 const passwordRegex: RegExp = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/
 
 
@@ -49,7 +49,8 @@ const signupPassword: HTMLInputElement = document.querySelector('[data-type="pas
 const signupConfirmPassword: HTMLInputElement = document.querySelector('[data-type="confirm-password"]') as HTMLInputElement;
 const message: HTMLSpanElement = document.querySelector("#matching-message") as HTMLSpanElement;
 const signupName: HTMLInputElement = document.querySelector('[data-type="name"]') as HTMLInputElement;
-const signupAge: HTMLInputElement = document.querySelector('[data-type="age"]') as HTMLInputElement;
+//const signupAge: HTMLInputElement = document.querySelector('[data-type="age"]') as HTMLInputElement;
+const signupDateOfBirth: HTMLInputElement = document.querySelector('[data-type="dob"]') as HTMLInputElement;
 const signupCpf: HTMLInputElement = document.querySelector('[data-type="cpf"]') as HTMLInputElement;
 const signupCompanyName: HTMLInputElement = document.querySelector('[data-type="company-name"]') as HTMLInputElement;
 const signupCnpj: HTMLInputElement = document.querySelector('[data-type="cnpj"]') as HTMLInputElement;
@@ -115,13 +116,14 @@ function createAccount(e:any){
 
         let person: Person= {
                 type: "candidate",
-                login: "",
+                email: "",
                 password: "",
                 name: "",
-                age:0,
+                dob: new Date() ,
                 cpf: "",
                 cep:"",
                 state: "",
+                country: "",
                 description:"",
                 skills:[],
                 approval:[],
@@ -152,13 +154,13 @@ function createAccount(e:any){
             if(signupEmail.value.match(emailRegex)){
 
                 if(people.some((person)=>{
-                    person.login.includes(signupEmail.value)
+                    person.email.includes(signupEmail.value)
                 })){
                     window.alert("Email already exist in our database");
                     check = false;
                     return;
                 }        
-                person.login = signupEmail.value;
+                person.email = signupEmail.value;
 
             }else{
                 window.alert("Email doesn't have right format");
@@ -180,6 +182,7 @@ function createAccount(e:any){
 
             //age
 
+            /*
             if(signupAge.value.match(ageRegex)){
                 person.age = parseInt(signupAge.value);
 
@@ -188,7 +191,9 @@ function createAccount(e:any){
                 check = false;
                 return;
 
-            }
+            }*/
+            person.dob = new Date(signupDateOfBirth.value)
+            person.country = signupCountry.value
 
             //cpf
             if(signupCpf.value.match(cpfRegex)){
@@ -232,7 +237,8 @@ function createAccount(e:any){
 
             //send data
             if(check === true){
-                let resText = sendPostToServer(url,person)
+                let request = new httpRequests
+                let resText = request.sendPostToServer(url,person)
                 if(!resText){
                     window.Error('Something went wrong on Request')
                     return;
@@ -248,7 +254,7 @@ function createAccount(e:any){
         let check = true;
         let person: Person= {
                 type: "company",
-                login: "",
+                email: "",
                 password: "",
                 companyName: "",
                 cnpj:"",
@@ -283,13 +289,13 @@ function createAccount(e:any){
             if(signupEmail.value.match(emailRegex)){
 
                 if(people.some((person)=>{
-                    person.login.includes(signupEmail.value)
+                    person.email.includes(signupEmail.value)
                 })){
                     window.alert("Email already exist in our database");
                     check = false;
                     return;
                 }        
-                person.login = signupEmail.value;
+                person.email = signupEmail.value;
 
             }else{
                 window.alert("Email doesn't have right format");
@@ -360,7 +366,8 @@ function createAccount(e:any){
 
             //send data
             if(check === true){
-                let resText = sendPostToServer(url,person)
+                let request = new httpRequests
+                let resText = request.sendPostToServer(url,person)
                 if(!resText){
                     window.Error('Something went wrong on Request')
                     return;
@@ -397,36 +404,30 @@ function validatePassword(this: HTMLInputElement){
 
 }
 
-function tryToLogin(this: any){
+async function tryToLogin(this: any){
 
+    let request = new httpRequests
 
-    let check: boolean = false;
+    let url: URL = new URL("http://localhost:8085/ZG-LinkeTinder2/login")
 
-    for (const person of people) {
-
-        if(person.login === loginEmail.value && person.password === loginPassword.value){
-            sessionStorage.setItem("loggedPerson",JSON.stringify(person));
-            sessionStorage.setItem("people", JSON.stringify(people));
-
-            check = true;
-            break;
-        }
-        
-    }
-
-    if(check){
-
-        location.assign("http://localhost:9000/view-page.html")
-
-    }
-    else if(loginEmail.value.length === 0 || loginPassword.value.length === 0 ){
+    if(loginEmail.value.length === 0 || loginPassword.value.length === 0 ){
         window.alert("Please Insert a Login and a Password")
         return
     }
-    else{
+
+    let allPeopleDataString: string = await request.receiveloggedPersonIfExistFromServer(url,loginEmail.value, loginPassword.value)
+
+    console.log(allPeopleDataString)
+
+    let allPeopleData: JSON = JSON.parse(allPeopleDataString)
+
+    if(allPeopleData){
+        sessionStorage.setItem("loggedPerson", allPeopleDataString)
+        location.assign("http://localhost:9000/view-page.html")
+    }else{
+
         window.alert("Login or password are incorrect")
         return;
-
     }
 
 

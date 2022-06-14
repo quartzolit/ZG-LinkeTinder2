@@ -1,17 +1,19 @@
 interface Person{
     type: string;
-    login: string;
+    email: string;
     password: string;
     name?: string;
-    age?: number;
+    //age?: number;
+    dob?: Date;
     cpf?: string;
     companyName?: string;
     cnpj?: string;
-    country?: string;
+    country: string;
     cep: string;
     state: string;
     description: string;
     skills?: string[];
+    vacancy?: string;
     approval?: Person[];
     disapproval?: Person[];
 }
