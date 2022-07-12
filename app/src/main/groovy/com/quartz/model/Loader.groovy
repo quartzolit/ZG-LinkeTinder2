@@ -10,30 +10,30 @@ class Loader {
                 ,cnpj: "14.488.144/0001", country: "Brazil", state: "Goiás", cep: "74070-040"
                 , description: "Awesome Company to work"
                 , skills: new Skills(skills: [EnumSkills.DATABASE, EnumSkills.JAVA, EnumSkills.GROOVY, EnumSkills.GITHUB])
-                , vacancy: new Vacancy(name: "dev", desiredSkills: new Skills(skills: [EnumSkills.DATABASE, EnumSkills.JAVA, EnumSkills.GROOVY, EnumSkills.GITHUB])));
+                , vacancy: [new Vacancy(name: "dev", desiredSkills: new Skills(skills: [EnumSkills.DATABASE, EnumSkills.JAVA, EnumSkills.GROOVY, EnumSkills.GITHUB]))]);
         Company co2 = new Company(name: "Petrobras", email: "comercial@petrobras.com.br"
                 ,cnpj: "33.000.167/1049-00", country: "Brazil", state: "Rio de Janeiro", cep: "20.031-912"
                 , description: "Gas super high price"
                 , skills: new Skills(skills: [EnumSkills.CSS, EnumSkills.HTML, EnumSkills.BACKEND, EnumSkills.GITHUB])
-                , vacancy: new Vacancy(name: "dev", desiredSkills: new Skills(skills: [EnumSkills.CSS, EnumSkills.HTML, EnumSkills.BACKEND, EnumSkills.GITHUB])));
+                , vacancy: [new Vacancy(name: "dev", desiredSkills: new Skills(skills: [EnumSkills.CSS, EnumSkills.HTML, EnumSkills.BACKEND, EnumSkills.GITHUB]))]);
 
         Company co3 = new Company(name: "Arroz-Gostoso", email: "comercial@arrozgostoso.com.br"
                 ,cnpj: "12.544.231/0011", country: "Brazil", state: "Mato Grosso do Sul", cep: "69512-030"
                 , description: "Selling good quality rice"
                 , skills: new Skills(skills: [EnumSkills.DATABASE, EnumSkills.FRONTEND, EnumSkills.REGEX, EnumSkills.CSS])
-                , vacancy: new Vacancy(name: "dev", desiredSkills: new Skills(skills: [EnumSkills.DATABASE, EnumSkills.FRONTEND, EnumSkills.REGEX, EnumSkills.CSS])));
+                , vacancy: [new Vacancy(name: "dev", desiredSkills: new Skills(skills: [EnumSkills.DATABASE, EnumSkills.FRONTEND, EnumSkills.REGEX, EnumSkills.CSS]))]);
 
         Company co4 = new Company(name: "Império do Boliche", email: "boliche@imperio.com.br"
                 ,cnpj: "84.521.799/0005", country: "Brazil", state: "Maranhão", cep: "81224-103"
                 , description: "Come play with us"
                 , skills: new Skills(skills: [EnumSkills.BACKEND, EnumSkills.FRONTEND, EnumSkills.DATABASE, EnumSkills.GITHUB])
-                , vacancy: new Vacancy(name: "dev", desiredSkills: new Skills(skills: [EnumSkills.BACKEND, EnumSkills.FRONTEND, EnumSkills.DATABASE, EnumSkills.GITHUB])));
+                , vacancy:[new Vacancy(name: "dev", desiredSkills: new Skills(skills: [EnumSkills.BACKEND, EnumSkills.FRONTEND, EnumSkills.DATABASE, EnumSkills.GITHUB]))]);
 
         Company co5 = new Company(name: "Boi na Fonte", email: "boi@nafonte.com.br"
                 ,cnpj: "87.530.973/0103", country: "Brazil", state: "Goiás", cep: "71522-008"
                 , description: "Come refresh your bull"
                 , skills: new Skills(skills: [EnumSkills.HIBERNATE, EnumSkills.JAVA, EnumSkills.GROOVY, EnumSkills.HTML, EnumSkills.CSS])
-                , vacancy: new Vacancy(name: "dev", desiredSkills: new Skills(skills: [EnumSkills.HIBERNATE, EnumSkills.JAVA, EnumSkills.GROOVY, EnumSkills.HTML, EnumSkills.CSS])));
+                , vacancy: [new Vacancy(name: "dev", desiredSkills: new Skills(skills: [EnumSkills.HIBERNATE, EnumSkills.JAVA, EnumSkills.GROOVY, EnumSkills.HTML, EnumSkills.CSS]))]);
 
         println("Companies co1, co2, co3,co4 and co5 loaded")
 

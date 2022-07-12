@@ -10,4 +10,5 @@ class Person{
     String country;
     String description;
     Skills skills = new Skills();
+    String password;
 }

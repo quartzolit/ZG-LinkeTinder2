@@ -5,6 +5,7 @@ import com.eclipsesource.json.JsonObject
 import com.quartz.dto.ConnectPostgres
 import com.quartz.model.person.Candidate
 import com.quartz.model.person.Company
+import com.quartz.model.person.Person
 import jakarta.servlet.ServletException
 import jakarta.servlet.annotation.WebServlet
 import jakarta.servlet.http.HttpServlet
@@ -26,14 +27,21 @@ class LoggedServlet extends HttpServlet {
 
 
         JsonObject resultJson = Json.parse(requestData).asObject()
-        String objectEmail = resultJson.get("cEmail").asString()
-        String objectPassword = resultJson.get("cPassword").asString()
+        String objectEmail = resultJson.get("userEmail").asString()
+        String objectPassword = resultJson.get("userPassword").asString()
 
-        Candidate isCandidate = postgres.showCandidateByEmail(objectEmail, objectPassword)
+        Candidate isCandidate = postgres.showCandidateByEmail(objectEmail)
 
-        if(isCandidate){
-            JsonObject jsonRes = getCandidateJson(isCandidate)
+        println(isCandidate)
 
+        if(isCandidate!= null){
+            println("entrei aqui")
+            JsonObject jsonRes = null
+
+            if(isCandidate.password == objectPassword ){
+                jsonRes = getCandidateJson(isCandidate)
+
+            }
             PrintWriter responseJson = response.getWriter()
             //response.setContentType("application/json")
             //response.getCharacterEncoding("UTF-8")
@@ -41,10 +49,18 @@ class LoggedServlet extends HttpServlet {
             responseJson.flush()
 
         }else{
-            Company isCompany = postgres.showCompanyByEmail(objectEmail,objectPassword)
+            println("entrei no lugar certo")
+
+            Company isCompany = postgres.showCompanyByEmail(objectEmail)
 
             if(isCompany){
-                JsonObject jsonRes = getCompanyJson(isCompany)
+
+                JsonObject jsonRes = null
+
+                if(isCompany.password == objectPassword){
+                    jsonRes = getCompanyJson(isCompany)
+
+                }
 
                 PrintWriter responseJson = response.getWriter()
                 //response.setContentType("application/json")
@@ -73,7 +89,7 @@ class LoggedServlet extends HttpServlet {
         loggedPerson.add("type", "candidate")
         loggedPerson.add("email", candidate.email)
         loggedPerson.add("name", candidate.name)
-        loggedPerson.add("surname", candidate.surname)
+        loggedPerson.add("surName", candidate.surname)
         loggedPerson.add("dob", "${candidate.dob}")
         loggedPerson.add("cpf", candidate.cpf)
         loggedPerson.add("cep", candidate.cep)
@@ -88,6 +104,7 @@ class LoggedServlet extends HttpServlet {
         JsonObject loggedPerson = new JsonObject()
 
         loggedPerson.add("type", "company")
+        loggedPerson.add("id", company.id)
         loggedPerson.add("email", company.email)
         loggedPerson.add("name", company.name)
         loggedPerson.add("cnpj", company.cnpj)

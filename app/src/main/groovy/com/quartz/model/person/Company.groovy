@@ -5,21 +5,21 @@ package com.quartz.model.person
 class Company extends Person {
     String name;
     String cnpj;
-    Vacancy vacancy;
+    List<Vacancy> vacancy;
 
     void createVacancy(String name, Skills skills) {
-        this.vacancy = new Vacancy(name: name, desiredSkills: skills);
+        this.vacancy<< new Vacancy(name: name, desiredSkills: skills);
 
 
     }
 
     void listVacancies() {
-        println(vacancy);
+        println(vacancy.toString());
 
     }
 
     void deleteVacancy(int id) {
-        this.vacancy = null
+        this.vacancy.remove(id);
 
     }
 

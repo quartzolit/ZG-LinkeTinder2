@@ -2,6 +2,7 @@ package com.quartz.dto
 
 import com.quartz.model.person.Candidate
 import com.quartz.model.person.Company
+import com.quartz.model.person.Person
 import com.quartz.model.person.Skills
 import com.quartz.model.person.Vacancy
 
@@ -19,9 +20,9 @@ interface IConnect {
 
     List<Vacancy> showALLCompanyVacanciesByCompanyId(int id);
 
-    Candidate showCandidateByEmail(String candidateEmail, String candidatePassword);
+    Candidate showCandidateByEmail(String candidateEmail);
 
-    Company showCompanyByEmail(String companyEmail, String companyPassword);
+    Company showCompanyByEmail(String companyEmail);
 
     void insertCandidate(Candidate person, String password);
 
@@ -31,15 +32,23 @@ interface IConnect {
 
     void insertCompany(Company person, String password)
 
+    void insertCompanySkills(Skills skills, String email)
+
+    void insertCompanySkillRelations(String email, String skill)
+
     void insertVacancy(Vacancy vacancy, String email)
 
     void insertVacancySkills(String title, String email, Skills skills)
 
-    void insertCompanySkillRelations(String email, String title, String skill)
+    void insertVacancySkillRelations(String email, String title, String skill)
 
-    void updateCandidate(Candidate person, int idCandidate);
+    void updateCandidate(Candidate person);
 
-    void updateCompany(Company person, int idCompany)
+    void updateSkillRelation(Person person);
+
+    void updateCompany(Company person)
+
+
 
     void updateVacancy(Vacancy vacancy, int idVacancy, int idCompany)
 

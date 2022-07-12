@@ -1,17 +1,14 @@
 package com.quartz.dto
 
-import com.quartz.model.person.Candidate
-import com.quartz.model.person.Company
-import com.quartz.model.person.Skills
-import com.quartz.model.person.Vacancy
+import com.quartz.model.person.*
 
+import javax.xml.transform.Result
 import java.sql.*
 import java.time.LocalDate
-import java.util.Date
 
 class ConnectPostgres implements IConnect {
 
-     @Override
+    @Override
     Connection connect() {
         Properties props = new Properties()
         props.setProperty("user", "arthur")
@@ -49,9 +46,9 @@ class ConnectPostgres implements IConnect {
     @Override
     List<Candidate> showALLCandidates() {
         String select_all = "SELECT ca.id, ca.name,ca.surname, ca.birthdate,ca.email, ca.cpf, ca.state, ca.cep, \n"+
-                " ca.country, ca.personal_description, string_agg(s.skill_name, ',') AS \"Skills List\"  \n"+
-                "from candidates AS ca, skills AS s, candidates_skills AS cs \n"+
-                "WHERE cs.id_skill = s.id AND cs.id_candidate = ca.id Group By ca.id ORDER BY ca.id"
+                " ca.country, ca.personal_description from candidates AS ca;"
+
+
 
         Connection conn = null
         Statement candidates = null
@@ -77,25 +74,55 @@ class ConnectPostgres implements IConnect {
                     int id = res.getInt(1)
                     String name = res.getString(2)
                     String surName = res.getString(3)
-                    LocalDate dateOfBirth = res.getDate(4)
+                    LocalDate dateOfBirth = LocalDate.parse(res.getDate(4).toString(), 'yyyy-MM-dd')
                     String email = res.getString(5)
                     String cpf =  res.getString(6)
                     String state = res.getString(7)
                     String cep = res.getString(8)
                     String country = res.getString(9)
                     String description = res.getString(10)
-                    String skillsList = res.getString(11)
-
-                    //int age = DateManagement.getAge(dateOfBirth)
 
 
-                    def skillsListArray = skillsList.split(",")
 
 
-                    listOfCandidates << new Candidate(id: id, name: name, surname: surName, email: email,
+                    String selectSkill = "SELECT string_agg(s.skill_name, ',') from candidates as ca, skills as s, candidates_skills as cs \n" +
+                            "WHERE cs.id_candidate = ca.id AND cs.id_skill = s.id AND ca.id = ? GROUP BY\n" +
+                            "ca.id ORDER BY ca.id;"
+
+                    PreparedStatement getSkills = conn.prepareStatement(
+                            selectSkill,
+                            ResultSet.TYPE_SCROLL_INSENSITIVE,
+                            ResultSet.CONCUR_READ_ONLY
+                    )
+
+
+                    getSkills.setInt(1,id);
+
+                    ResultSet res2 = getSkills.executeQuery();
+
+                    int qtd2 = getResultSetLength(res2)
+
+                    String skillList = null
+                    def skillsListArray = null
+
+                    if (qtd2 >0) {
+                        res2.next()
+                        skillList = res2.getString(1)
+
+                        skillsListArray = skillList.split(",")
+                    }
+
+                    Candidate ca = new Candidate(id: id, name: name, surname: surName, email: email,
                             cpf: cpf, dob: dateOfBirth, state: state, cep: cep,
-                            description: description, country: country,
-                            skills: new Skills(skills: skillsListArray))
+                            description: description, country: country)
+
+                    if(skillsListArray){
+                        ca.skills = new Skills(skills: skillsListArray)
+                    }
+
+                    getSkills.close()
+
+                    listOfCandidates << ca
                 }
             }
             else{
@@ -117,15 +144,7 @@ class ConnectPostgres implements IConnect {
     }
 
     List<Company> showALLCompanies() {
-        String select_all = "SELECT co.id,co.name, co.cnpj, co.email, co.company_description, co.state, co.cep, co.country, v.title,\n" +
-                "string_agg(s.skill_name, ',') AS \"Skills List\"\n" +
-                "from companies AS co,\n" +
-                "skills AS s,\n" +
-                "vacancies_skills AS vs, \n" +
-                "vacancies AS v\n" +
-                "WHERE vs.id_skill = s.id \n" +
-                "AND vs.id_vacancy = v.id\n" +
-                "AND v.id_company = co.id  Group By co.id, v.title ORDER BY co.id"
+        String select_all = "SELECT co.id,co.name, co.cnpj, co.email, co.company_description, co.state, co.cep, co.country FROM companies AS co"
         Connection conn = null
         Statement companies = null
         try{
@@ -153,18 +172,45 @@ class ConnectPostgres implements IConnect {
                     String state = res.getString(6)
                     String cep = res.getString(7)
                     String country = res.getString(8)
-                    String title = res.getString(9)
-                    String skillList = res.getString(10)
 
+                    String selectSkill = "SELECT string_agg(s.skill_name, ',') from companies as co, skills as s, companies_skills as cs\n" +
+                            "WHERE cs.id_company = co.id AND cs.id_skill = s.id AND co.id = ? GROUP BY\n" +
+                            "co.id ORDER BY co.id;"
 
+                    PreparedStatement getSkills = conn.prepareStatement(
+                            selectSkill,
+                            ResultSet.TYPE_SCROLL_INSENSITIVE,
+                            ResultSet.CONCUR_READ_ONLY
+                    )
 
-                    def skillsListArray = skillList.split(",")
+                    getSkills.setInt(1,id);
 
-                    listOfCompanies << new Company(id: id, name: name, email: email
+                    ResultSet res2 = getSkills.executeQuery();
+
+                    int qtd2 = getResultSetLength(res2)
+
+                    String skillList = null
+                    def skillsListArray = null
+
+                    if (qtd2 >0) {
+                        res2.next()
+                        skillList = res2.getString(1)
+
+                        skillsListArray = skillList.split(",")
+                    }
+
+                    Company co = new Company(id: id, name: name, email: email
                             ,cnpj: cnpj, country: country, state: state, cep: cep
-                            , description: description
-                            , skills: new Skills(skills: skillsListArray)
-                            , vacancy: new Vacancy(name: title, desiredSkills: new Skills(skills: skillsListArray)))
+                            , description: description)
+
+                    if(skillsListArray){
+                        co.skills = new Skills(skills: skillsListArray)
+                    }
+
+                    getSkills.close()
+
+
+                    listOfCompanies << co
                 }
             }
             else{
@@ -246,16 +292,14 @@ class ConnectPostgres implements IConnect {
     }
 
     @Override
-    Candidate showCandidateByEmail(String candidateEmail, String candidatePassword) {
-
+    Candidate showCandidateByEmail(String candidateEmail) {
         Connection conn = null
         PreparedStatement getCandidate = null
+        PreparedStatement getSkills = null
         try{
             conn = connect()
 
-            String singleCandidate = "SELECT ca.*, string_agg(s.skill_name, ',') from candidates as ca, skills as s, candidates_skills as cs\n" +
-                    "WHERE cs.id_candidate = ca.id AND cs.id_skill = s.id AND ca.email = ? GROUP BY\n" +
-                    "ca.id ORDER BY ca.id;"
+            String singleCandidate = "SELECT ca.* FROM candidates AS ca Where ca.email = ?;"
 
             getCandidate = conn.prepareStatement(
                     singleCandidate,
@@ -263,15 +307,14 @@ class ConnectPostgres implements IConnect {
                     ResultSet.CONCUR_READ_ONLY
             )
 
-            getCandidate.setString(1, candidateEmail)
+            getCandidate.setString(1,candidateEmail)
 
             ResultSet res = getCandidate.executeQuery()
 
             int qtd = getResultSetLength(res)
 
-            if(qtd>0){
+            if (qtd >0){
                 res.next()
-
                 int id = res.getInt(1)
                 String name = res.getString(2)
                 String surName = res.getString(3)
@@ -283,66 +326,76 @@ class ConnectPostgres implements IConnect {
                 String country = res.getString(9)
                 String description = res.getString(10)
                 String password = res.getString(11)
-                String skillsList = res.getString(12)
 
-                def skillsListArray = skillsList.split(",")
 
+                String selectSkill = "SELECT string_agg(s.skill_name, ',') from candidates as ca, skills as s, candidates_skills as cs \n" +
+                        "WHERE cs.id_candidate = ca.id AND cs.id_skill = s.id AND ca.id = ? GROUP BY\n" +
+                        "ca.id ORDER BY ca.id;"
+
+                getSkills = conn.prepareStatement(
+                        selectSkill,
+                        ResultSet.TYPE_SCROLL_INSENSITIVE,
+                        ResultSet.CONCUR_READ_ONLY
+                )
+
+                getSkills.setInt(1,id);
+
+                ResultSet res2 = getSkills.executeQuery();
+
+                int qtd2 = getResultSetLength(res2)
+
+                String skillList = null
+                def skillsListArray = null
+
+                if (qtd2 >0) {
+                    res2.next()
+                    skillList = res2.getString(1)
+
+                    skillsListArray = skillList.split(",")
+                }
 
                 Candidate ca = new Candidate(id: id, name: name, surname: surName, email: email,
                         cpf: cpf, dob: dateOfBirth, state: state, cep: cep,
-                        description: description, country: country,
-                        skills: new Skills(skills: skillsListArray))
+                        description: description, country: country, password: password)
 
-                getCandidate.close()
-                disconnect(conn)
-
-                if(!(candidateEmail == email && candidatePassword == password)){
-                    println("Email or Password doesn't match")
-                    return null
+                if(skillsListArray){
+                    ca.skills = new Skills(skills: skillsListArray)
                 }
 
+                getCandidate.close()
+                getSkills.close()
                 return ca
-
             }else {
                 println("Candidate not found")
                 return null
             }
 
         }catch(Exception e){
-        e.printStackTrace()
-        System.err.println("Erro ao encontrar o candidato")
-        System.exit(-42)
+            e.printStackTrace()
+            System.err.println("Error on looking for candidate")
+            System.exit(-42)
         }
         finally {
-            getCandidate.close()
             disconnect(conn)
         }
     }
 
     @Override
-    Company showCompanyByEmail(String companyEmail, String companyPassword) {
+    Company showCompanyByEmail(String companyEmail) {
 
-        String select_all = "SELECT co.*, v.title,\n" +
-                "string_agg(s.skill_name, ',') AS \"Skills List\"\n" +
-                "from companies AS co,\n" +
-                "skills AS s,\n" +
-                "vacancies_skills AS vs, \n" +
-                "vacancies AS v\n" +
-                "WHERE vs.id_skill = s.id \n" +
-                "AND vs.id_vacancy = v.id\n" +
-                "AND v.id_company = co.id \n" +
-                "AND co.email = ?  Group By co.id, v.title ORDER BY co.id"
+        String selectCompany ="SELECT co.* FROM companies AS co Where co.email = ?"
         Connection conn = null
         Statement getCompany = null
+        Statement getSkills = null
         try{
             conn = connect()
             getCompany = conn.prepareStatement(
-                    select_all,
+                    selectCompany,
                     ResultSet.TYPE_SCROLL_INSENSITIVE,
                     ResultSet.CONCUR_READ_ONLY
             )
 
-            getCompany.setString(1, companyEmail )
+            getCompany.setString(1,companyEmail)
 
 
 
@@ -350,7 +403,6 @@ class ConnectPostgres implements IConnect {
 
 
             int qtd = getResultSetLength(res)
-
 
             if (qtd >0){
                 res.next()
@@ -364,25 +416,43 @@ class ConnectPostgres implements IConnect {
                 String cep = res.getString(7)
                 String country = res.getString(8)
                 String password = res.getString(9)
-                String title = res.getString(10)
-                String skillList = res.getString(11)
 
+                String selectSkill = "SELECT string_agg(s.skill_name, ',') from companies as co, skills as s, companies_skills as cs\n" +
+                        "WHERE cs.id_company = co.id AND cs.id_skill = s.id AND co.id = ? GROUP BY\n" +
+                        "co.id ORDER BY co.id;"
 
+                getSkills = conn.prepareStatement(
+                        selectSkill,
+                        ResultSet.TYPE_SCROLL_INSENSITIVE,
+                        ResultSet.CONCUR_READ_ONLY
+                )
 
-                def skillsListArray = skillList.split(",")
+                getSkills.setInt(1,id);
+
+                ResultSet res2 = getSkills.executeQuery();
+
+                int qtd2 = getResultSetLength(res2)
+
+                String skillList = null
+                def skillsListArray = null
+
+                if (qtd2 >0) {
+                    res2.next()
+                    skillList = res2.getString(1)
+
+                    skillsListArray = skillList.split(",")
+                }
 
                 Company co = new Company(id: id, name: name, email: email
                         ,cnpj: cnpj, country: country, state: state, cep: cep
-                        , description: description
-                        , skills: new Skills(skills: skillsListArray)
-                        , vacancy: new Vacancy(name: title, desiredSkills: new Skills(skills: skillsListArray)))
+                        , description: description, password: password)
 
-
-                if(!(email == companyEmail && password == companyPassword)){
-                    println("Email or password does not match")
-                    return null
+                if(skillsListArray){
+                    co.skills = new Skills(skills: skillsListArray)
                 }
 
+                getCompany.close()
+                getSkills.close()
                 return co
             }
             else{
@@ -393,13 +463,17 @@ class ConnectPostgres implements IConnect {
 
         }catch(Exception e){
             e.printStackTrace()
-            System.err.println("Erro ao encontrar o candidato")
+            System.err.println("Error on looking for Candidate")
             System.exit(-42)
         }
         finally {
-            getCompany.close()
             disconnect(conn)
         }
+    }
+
+    Skills showAllSkills(){
+        Connection conn = null;
+
     }
 
     @Override
@@ -417,46 +491,46 @@ class ConnectPostgres implements IConnect {
 
 
 
-                PreparedStatement candidateFilter = conn.prepareStatement(
-                        searchForCandidate,
-                        ResultSet.TYPE_SCROLL_INSENSITIVE,
-                        ResultSet.CONCUR_READ_ONLY
-                )
+            PreparedStatement candidateFilter = conn.prepareStatement(
+                    searchForCandidate,
+                    ResultSet.TYPE_SCROLL_INSENSITIVE,
+                    ResultSet.CONCUR_READ_ONLY
+            )
 
-                candidateFilter.setString(1, person.email)
+            candidateFilter.setString(1, person.email)
 
-                ResultSet res = candidateFilter.executeQuery()
+            ResultSet res = candidateFilter.executeQuery()
 
-                int qtd = getResultSetLength(res)
+            int qtd = getResultSetLength(res)
 
-                if(qtd > 0){
-                    println("A user with this e-mail already exists")
-                }
-                else {
+            if(qtd > 0){
+                println("A user with this e-mail already exists")
+            }
+            else {
 
-                    PreparedStatement insert = conn.prepareStatement(insertCandidate)
+                PreparedStatement insert = conn.prepareStatement(insertCandidate)
 
-                    insert.setString(1,person.name)
-                    insert.setString(2,person.surname)
-                    insert.setDate(3,person.dob)
-                    insert.setString(4,person.email)
-                    insert.setString(5,person.cpf)
-                    insert.setString(6,person.state)
-                    insert.setString(7,person.cep)
-                    insert.setString(8,person.country)
-                    insert.setString(9,person.description)
-                    insert.setString(10,password)
+                insert.setString(1,person.name)
+                insert.setString(2,person.surname)
+                insert.setDate(3,person.dob)
+                insert.setString(4,person.email)
+                insert.setString(5,person.cpf)
+                insert.setString(6,person.state)
+                insert.setString(7,person.cep)
+                insert.setString(8,person.country)
+                insert.setString(9,person.description)
+                insert.setString(10,password)
 
 
-                    insert.executeUpdate()
-                    insert.close()
+                insert.executeUpdate()
+                insert.close()
 
-                }
+            }
             candidateFilter.close()
             disconnect(conn)
         }catch(Exception e){
             e.printStackTrace()
-            System.err.println("Erro ao inserir o candidato")
+            System.err.println("Error on Looking for Candidate")
             System.exit(-42)
         }
 
@@ -532,7 +606,6 @@ class ConnectPostgres implements IConnect {
 
             int qtd = getResultSetLength(res)
 
-            println(qtd + "Numero de encontros")
 
             if(qtd > 0){
                 res.next()
@@ -549,8 +622,9 @@ class ConnectPostgres implements IConnect {
 
                 insertRelation.executeUpdate()
 
-                println("executou o update")
                 insertRelation.close()
+
+                println("Updated!")
 
                 selectIDS.close()
                 disconnect(conn)
@@ -585,7 +659,6 @@ class ConnectPostgres implements IConnect {
 
             int qtd = getResultSetLength(res)
 
-            println("peguei a quantidade ${qtd}")
 
             if(qtd > 0){
                 println("A user with this e-mail already exists")
@@ -604,7 +677,7 @@ class ConnectPostgres implements IConnect {
                 insert.setString(8,password)
 
                 insert.executeUpdate()
-                println("executou o update")
+                println("Updated!!!")
                 insert.close()
             }
 
@@ -616,6 +689,121 @@ class ConnectPostgres implements IConnect {
             println("Connection problem")
             System.exit(-42)
         }
+    }
+
+    void insertCompanySkills(Skills skills, String email){
+        Connection conn = null
+
+        try{
+            String skill= null
+
+            conn = connect()
+
+            while (skills.skills.size()>0){
+
+                skill = skills.skills.remove(0)
+
+                String searchSkillOnDB = "SELECT * FROM skills WHERE skill_name = ?"
+
+                PreparedStatement searchSkill = conn.prepareStatement(
+                        searchSkillOnDB,
+                        ResultSet.TYPE_SCROLL_INSENSITIVE,
+                        ResultSet.CONCUR_READ_ONLY
+                )
+
+                searchSkill.setString(1,skill)
+
+                ResultSet res = searchSkill.executeQuery()
+
+                int qtd = getResultSetLength(res)
+
+                if(qtd>0){
+
+                    insertCompanySkillRelations(email, skill)
+
+
+                }else {
+                    String skillInsert = "INSERT INTO skills (skill_name) VALUES(?)"
+
+                    PreparedStatement insertSkill = conn.prepareStatement(skillInsert)
+
+                    insertSkill.setString(1,skill);
+
+                    insertSkill.executeUpdate();
+                    insertCompanySkillRelations(email, skill)
+
+                    insertSkill.close();
+                }
+                searchSkill.close()
+            }
+
+        }
+        catch (Exception e){
+            e.stackTrace()
+            println("Connection not Found")
+            System.exit(-42)
+
+        }
+        finally{
+            disconnect(conn)
+
+
+        }
+    }
+
+    void insertCompanySkillRelations(String email, String skill){
+        Connection conn = null
+        try{
+
+            conn = connect()
+
+            String searchIDs = "SELECT co.id, s.id FROM companies AS co, skills AS s WHERE co.email = ? AND s.skill_name = ?; "
+
+            PreparedStatement selectIDS = conn.prepareStatement(
+                    searchIDs,
+                    ResultSet.TYPE_SCROLL_INSENSITIVE,
+                    ResultSet.CONCUR_READ_ONLY
+            )
+
+            selectIDS.setString(1,email)
+            selectIDS.setString(2,skill)
+
+            ResultSet res = selectIDS.executeQuery();
+
+            int qtd = getResultSetLength(res)
+
+
+            if(qtd > 0){
+                res.next()
+
+                int idCompany = res.getInt(1)
+                int idSkill = res.getInt(2)
+
+                String insertSkillRelation = "INSERT INTO companies_skills (id_company,id_skill) VALUES (?,?)"
+
+                PreparedStatement insertRelation = conn.prepareStatement(insertSkillRelation)
+
+                insertRelation.setInt(1, idCompany)
+                insertRelation.setInt(2, idSkill)
+
+                insertRelation.executeUpdate()
+
+                println("UPDATED!!!")
+                insertRelation.close()
+                selectIDS.close()
+
+            }else{
+                println("ID not found. Please check if everything is correct")
+            }
+        }catch(Exception e){
+            e.stackTrace();
+            println("Connection not Found")
+            System.exit(-42)
+        }
+        finally {
+            disconnect(conn)
+        }
+
     }
 
     void insertVacancy(Vacancy vacancy, String email){
@@ -637,24 +825,20 @@ class ConnectPostgres implements IConnect {
             int qtd = getResultSetLength(res)
 
             if(qtd>0){
-                    res.next()
-                    int id = res.getInt(1)
-                    String vacancyCreationSQL = "INSERT INTO vacancies (title, id_company) VALUES(?,?)"
-                    PreparedStatement createVacancy = conn.prepareStatement(vacancyCreationSQL)
+                res.next()
+                int id = res.getInt(1)
+                String vacancyCreationSQL = "INSERT INTO vacancies (title, id_company) VALUES(?,?)"
+                PreparedStatement createVacancy = conn.prepareStatement(vacancyCreationSQL)
 
-                    createVacancy.setString(1, vacancy.name)
-                    createVacancy.setInt(2, id)
+                createVacancy.setString(1, vacancy.name)
+                createVacancy.setInt(2, id)
 
-                    createVacancy.executeUpdate();
-
-                    println("cheguei aqui")
-
-
+                createVacancy.executeUpdate();
 
                 createVacancy.close()
                 searchCreatedCompany.close()
                 disconnect(conn)
-               // insertVacancySkills(vacancy, email, false)
+                // insertVacancySkills(vacancy, email, false)
             }
             else {
                 println("Account not found")
@@ -693,10 +877,9 @@ class ConnectPostgres implements IConnect {
 
                 int qtd = getResultSetLength(res)
 
-                println("encontrei a skill ${skill}")
 
                 if(qtd>0){
-                    insertCompanySkillRelations(email, vacancyTitle, skill)
+                    insertVacancySkillRelations(email, vacancyTitle, skill)
 
                 }else {
                     String skillInsert = "INSERT INTO skills (skill_name) VALUES(?)"
@@ -721,7 +904,7 @@ class ConnectPostgres implements IConnect {
 
     }
 
-    void insertCompanySkillRelations(String email, String  title, String skill){
+    void insertVacancySkillRelations(String email, String  title, String skill){
         try{
 
             Connection conn = connect()
@@ -750,7 +933,6 @@ class ConnectPostgres implements IConnect {
                 int idVacancy = res.getInt(1)
                 int idSkill = res.getInt(2)
 
-                println("peguei os valores")
 
                 String insertSkillRelation = "INSERT INTO vacancies_skills (id_skill,id_vacancy) VALUES (?,?)"
 
@@ -775,108 +957,147 @@ class ConnectPostgres implements IConnect {
     }
 
     @Override
-    void updateCandidate(Candidate person, int idCandidate) {
+    void updateCandidate(Candidate person) {
+
+        Connection conn = null
 
         try{
 
-            String searchId = "SELECT * FROM candidates where id = ?"
-            String updateCandidate = "Update FROM candidates \n"+
+            String updateCandidate = "Update candidates \n"+
                     "set name = ?, surname = ?, birthdate = ?, \n"+
                     "email =?, cpf = ?, state =?, cep =?, country =?, \n"+
                     "personal_description =? WHERE id = ?"
 
-            Connection conn = connect()
+            conn = connect()
 
-            PreparedStatement search = conn.prepareStatement(
-                    searchId,
-                    ResultSet.TYPE_SCROLL_INSENSITIVE,
-                    ResultSet.CONCUR_READ_ONLY
-            )
+            Candidate getCandidate = showCandidateByEmail(person.email);
 
-            search.setInt(1,idCandidate)
+            person.id = getCandidate.id;
 
-            ResultSet res = search.executeQuery()
+            PreparedStatement update = conn.prepareStatement(updateCandidate)
 
-            int qtd = getResultSetLength(res)
+            update.setString(1,person.name);
+            update.setString(2,person.surname);
+            update.setDate(3,person.dob);
+            update.setString(4,person.email);
+            update.setString(5,person.cpf);
+            update.setString(6,person.state);
+            update.setString(7,person.cep);
+            update.setString(8,person.country);
+            update.setString(9,person.description);
+            update.setInt(10,person.id);
 
-            if(qtd>0){
-                PreparedStatement update = conn.prepareStatement(updateCandidate)
+            update.executeUpdate()
+            update.close()
 
-                update.setString(1,person.name);
-                update.setString(2,person.surname);
-                update.setDate(3,person.dob);
-                update.setString(4,person.email);
-                update.setString(5,person.cpf);
-                update.setString(6,person.state);
-                update.setString(7,person.cep);
-                update.setString(8,person.country);
-                update.setString(9,person.description);
-                update.setInt(10,idCandidate);
 
-                update.executeUpdate()
-                update.close()
-                search.close()
-                disconnect(conn)
-            }
+
+            updateSkillRelation(person)
+
+
 
         }catch(Exception e){
             e.stackTrace()
             println("Connection not Found")
             System.exit(-42)
         }
+        finally {
+            disconnect(conn)
+        }
 
     }
 
-    void updateCompany(Company person, int idCompany) {
+    void updateCompany(Company person) {
+        Connection conn = null
+        Company getCompany = showCompanyByEmail(person.email);
+        try{
+
+            String updateCompany = "Update companies \n"+
+                    "set name = ?, cnpj = ?, email = ?, \n"+
+                    "company_description =?, state = ?, cep =?, country =? \n"+
+                    " WHERE id = ?"
+
+            conn = connect()
+
+            person.id = getCompany.id;
+
+            PreparedStatement update = conn.prepareStatement(updateCompany)
+
+            update.setString(1,person.name);
+            update.setString(2,person.cnpj);
+            update.setString(3,person.email);
+            update.setString(4,person.description);
+            update.setString(5,person.state);
+            update.setString(6,person.cep);
+            update.setString(7,person.country);
+            update.setInt(8,person.id);
+
+            update.executeUpdate()
+            update.close()
+
+            updateSkillRelation(person)
+
+        }catch(Exception e){
+            e.stackTrace()
+            println("Connection not Found")
+            System.exit(-42)
+        }finally{
+            disconnect(conn)
+        }
+
+    }
+
+    void updateSkillRelation(Person person){
+
+        Connection conn = null;
 
         try{
 
-            String searchId = "SELECT * FROM companies where id = ?"
-            String updateCompany = "Update FROM companies \n"+
-                    "set name = ?, cnpj = ?, email = ?, \n"+
-                    "company_description =?, state = ?, cep =?, country =?, \n"+
-                    " WHERE id = ?"
+            conn = connect()
 
-            Connection conn = connect()
+            if(person instanceof Candidate){
 
-            PreparedStatement search = conn.prepareStatement(
-                    searchId,
-                    ResultSet.TYPE_SCROLL_INSENSITIVE,
-                    ResultSet.CONCUR_READ_ONLY
-            )
+                String deleteSkillsFromCandidate= 'DELETE FROM candidates_skills WHERE id_candidate=?'
 
-            search.setInt(1,idCompany)
+                PreparedStatement delete = conn.prepareStatement(deleteSkillsFromCandidate);
 
-            ResultSet res = search.executeQuery()
+                delete.setInt(1,person.id)
 
-            int qtd = getResultSetLength(res)
+                delete.executeUpdate();
 
-            if(qtd>0){
+                delete.close()
 
-                PreparedStatement update = conn.prepareStatement(updateCompany)
 
-                update.setString(1,person.name);
-                update.setString(2,person.cnpj);
-                update.setString(3,person.email);
-                update.setString(4,person.description);
-                update.setString(5,person.state);
-                update.setString(6,person.cep);
-                update.setString(7,person.country);
-                update.setInt(8,idCompany);
+                insertCandidateSkills(person.skills, person.email)
+            }
+            else {
+                String deleteSkillsFromCompany= 'DELETE FROM companies_skills WHERE id_company=?;'
 
-                update.executeUpdate()
-                update.close()
-                search.close()
-                disconnect(conn)
+
+
+                PreparedStatement delete = conn.prepareStatement(deleteSkillsFromCompany);
+
+
+
+                delete.setInt(1,person.id)
+
+
+
+                delete.executeUpdate();
+
+                insertCompanySkills(person.skills, person.email)
             }
 
         }catch(Exception e){
             e.stackTrace()
             println("Connection not Found")
             System.exit(-42)
+        }finally {
+            disconnect(conn)
         }
 
     }
+
 
     void updateVacancy(Vacancy vacancy, int idVacancy, int idCompany) {
 

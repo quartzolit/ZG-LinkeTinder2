@@ -17,7 +17,7 @@ class httpRequests {
             console.log(request.responseText)
         }
     
-        return request.responseText
+        return request.status
     }
     
      async receiveloggedPersonIfExistFromServer(url: URL, email: string, password: string): Promise<string>{
@@ -29,8 +29,8 @@ class httpRequests {
 
 
         let loginJson = {
-            cEmail : `${email}`,
-            cPassword: `${password}`
+            userEmail : `${email}`,
+            userPassword: `${password}`
         }
 
         request.send(JSON.stringify(loginJson))

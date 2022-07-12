@@ -4,11 +4,11 @@ import { httpRequests } from "./httpRequest";
 
 //Redirecting If not Login
 
-
+/*
 if(!sessionStorage.loggedPerson){
     location.assign("http://localhost:9000/")
 
-}
+}*/
 
 //--creating global variables
 const peopleList: Person[]=[];

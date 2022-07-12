@@ -17,6 +17,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 
 import java.sql.Connection
+import java.time.LocalDate
 import java.util.stream.Collectors
 
 @WebServlet("/person")
@@ -31,16 +32,32 @@ class SignupServlet extends HttpServlet{
 
         JsonObject resultJson = Json.parse(requestData).asObject()
 
-        println(resultJson.toString())
 
         String objectType = resultJson.get("type").asString()
 
+        String objectEmail = resultJson.get("email").asString()
 
-        if(objectType == "candidate"){
-            sendCandidateToDB(resultJson)
-        }else{
-            sendCompanyToDB(resultJson)
+        boolean check = checkingIfAccountAlreadyExist(objectEmail);
+
+        if(!check){
+            if(objectType == "candidate"){
+                sendCandidateToDB(resultJson)
+
+                response.setStatus(201);
+
+
+            }else{
+                sendCompanyToDB(resultJson)
+                response.setStatus(201);
+            }
+        }else {
+            response.setStatus(302)
+            PrintWriter writer = response.getWriter()
+            writer.print(response.status)
+            writer.flush()
         }
+
+
 
     }
 
@@ -49,9 +66,9 @@ class SignupServlet extends HttpServlet{
 
         response.addHeader("Access-Control-Allow-Origin", "*");
 
-        JsonObject resJson = new JsonObject()
+        JsonArray resJson = new JsonArray()
 
-        if(type == "[candidate]"){
+        if(type == "candidate"){
              resJson = getAllCompanies()
 
         }
@@ -71,6 +88,21 @@ class SignupServlet extends HttpServlet{
     }
 
 
+    Boolean checkingIfAccountAlreadyExist(String email){
+        ConnectPostgres postgres = new ConnectPostgres();
+
+        boolean exist = false;
+
+        Candidate searchCandidate = postgres.showCandidateByEmail(email);
+        Company searchCompany = postgres.showCompanyByEmail(email);
+
+        if((searchCandidate) || (searchCompany)){
+            exist = true;
+        }
+
+        return exist;
+    }
+
     public void  sendCandidateToDB(JsonObject result){
 
         ConnectPostgres postgres = new ConnectPostgres()
@@ -80,9 +112,11 @@ class SignupServlet extends HttpServlet{
 
         Candidate candidate = new Candidate()
         candidate.name = result.get("name").asString()
-        candidate.surname = result.get("name").asString()
-        candidate.email= result.get("login").asString()
-        candidate.dob = result.get("dob").asInt()
+        candidate.surname = result.get("surName").asString()
+        candidate.email= result.get("email").asString()
+        String dob = result.get("dob").asString()
+        println(dob)
+        candidate.dob = LocalDate.parse(dob.find(/\d{4}-\d{2}-\d{2}/), 'yyyy-MM-dd')
         candidate.cpf = result.get("cpf").asString()
         candidate.country = result.get("country").asString()
         candidate.cep = result.get("cep").asString()
@@ -91,6 +125,9 @@ class SignupServlet extends HttpServlet{
         candidate.skills = new Skills()
 
         String password = result.get("password").asString()
+
+
+
 
 
         postgres.insertCandidate(candidate, password)
@@ -110,7 +147,7 @@ class SignupServlet extends HttpServlet{
 
         Company company = new Company()
         company.name = result.get("name").asString()
-        company.email= result.get("login").asString()
+        company.email= result.get("email").asString()
         company.cnpj = result.get("cnpj").asInt()
         company.country = result.get("country").asString()
         company.cep = result.get("cep").asString()
@@ -125,12 +162,10 @@ class SignupServlet extends HttpServlet{
 
     }
 
-    public JsonObject getAllCompanies(){
+    public JsonArray getAllCompanies(){
         ConnectPostgres postgres = new ConnectPostgres()
 
         List<Company> companies = postgres.showALLCompanies()
-
-        JsonObject resJson = new JsonObject()
 
         JsonArray array = new JsonArray()
 
@@ -153,19 +188,15 @@ class SignupServlet extends HttpServlet{
             array.add(elementJson)
         }
 
-        resJson.add("companies", array)
 
-
-        return resJson
+        return array
 
     }
 
-    public JsonObject getAllCandidates() {
+    public JsonArray getAllCandidates() {
         ConnectPostgres postgres = new ConnectPostgres()
 
         List<Candidate> candidates = postgres.showALLCandidates()
-
-        JsonObject resJson = new JsonObject()
 
         JsonArray array = new JsonArray()
 
@@ -187,8 +218,7 @@ class SignupServlet extends HttpServlet{
             array.add(elementJson)
         }
 
-        resJson.add("candidates",array)
 
-        return resJson
+        return array
     }
 }
